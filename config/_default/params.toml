@@ -48,6 +48,7 @@ mainSections = ["post"]
     showEdit            = false
     seriesOpened        = true
     sharingLinks        = ["linkedin", "twitter", "reddit"]
+    showComments        = true
 
 [list]
     showHero        = false

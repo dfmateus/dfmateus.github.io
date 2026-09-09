@@ -1,0 +1,69 @@
+colorScheme          = "one-light"
+defaultAppearance    = "light"
+autoSwitchAppearance = false
+
+disableTextInHeader = true
+enableSearch   = true
+enableCodeCopy = true
+
+mainSections = ["post"]
+
+[header]
+    layout = "fixed-fill-blur"
+
+[footer]
+    showMenu               = true
+    showCopyright          = true
+    showThemeAttribution   = true
+    showAppearanceSwitcher = true
+    showScrollToTop        = true
+
+[homepage]
+    layout          = "page"
+    homepageImage   = "img/avatar.png"
+    showRecent      = true
+    showRecentItems = 10
+    showMoreLink    = true
+    showMoreLinkDest = "/post/"
+    cardView        = false
+    cardViewScreenWidth = false
+
+[article]
+    showDate            = true
+    showDateUpdated     = false
+    showAuthor          = true
+    showReadingTime     = true
+    showTableOfContents = true
+    showTaxonomies      = true
+    showCategories      = true
+    showTags            = true
+    showCategoriesInSecondaryColor = true
+    showRelatedContent  = true
+    relatedContentLimit = 3
+    showBreadcrumbs     = true
+    showHero            = true
+    heroStyle           = "big"
+    showWordCount       = false
+    showPagination      = true
+    showEdit            = false
+    seriesOpened        = true
+    sharingLinks        = ["linkedin", "twitter", "reddit"]
+
+[list]
+    showHero        = false
+    showBreadcrumbs = true
+    showSummary     = true
+    showTableOfContents = false
+    cardView        = false
+    groupByYear     = false
+
+[taxonomy]
+    showTermCount   = true
+    showBreadcrumbs = true
+    cardView        = false
+
+[term]
+    showBreadcrumbs     = true
+    showTableOfContents = false
+    groupByYear         = false
+    cardView            = false

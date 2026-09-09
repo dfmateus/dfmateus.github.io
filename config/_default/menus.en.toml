@@ -1,0 +1,56 @@
+# -- Top navigation bar (all in one bar, like DevOpsTales) --
+[[main]]
+    name    = "Home"
+    pageRef = "/"
+    weight  = 10
+
+[[main]]
+    name    = "Ansible"
+    pageRef = "categories/ansible"
+    weight  = 20
+
+[[main]]
+    name    = "OpenShift"
+    pageRef = "categories/openshift"
+    weight  = 30
+
+[[main]]
+    name    = "Kubernetes"
+    pageRef = "categories/kubernetes"
+    weight  = 40
+
+[[main]]
+    name    = "Multi-Cluster"
+    pageRef = "categories/multi-cluster"
+    weight  = 50
+
+[[main]]
+    name    = "Tags"
+    pageRef = "tags"
+    weight  = 60
+
+[[main]]
+    name    = "Series"
+    pageRef = "series"
+    weight  = 70
+
+[[main]]
+    name    = "About"
+    pageRef = "page/about"
+    weight  = 80
+
+# -- Footer menu --
+[[footer]]
+    name    = "About"
+    pageRef = "page/about"
+    weight  = 10
+
+[[footer]]
+    name    = "Categories"
+    pageRef = "categories"
+    weight  = 20
+
+[[footer]]
+    name    = "Tags"
+    pageRef = "tags"
+    weight  = 30

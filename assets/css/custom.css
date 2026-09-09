@@ -1,0 +1,29 @@
+/* Center the menu items across the full header width */
+.main-menu {
+    justify-content: center !important;
+}
+
+/* Make the menu links container take full width and center */
+.main-menu > .flex.items-center {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Widen the main site container */
+body > div {
+    max-width: 1536px !important;
+}
+
+/* Widen article content and headers to match the hero image width */
+.article-content.max-w-prose,
+#single_header.max-w-prose,
+footer.max-w-prose {
+    max-width: 100% !important;
+}
+
+/* Widen homepage content area */
+main .prose {
+    max-width: 100% !important;
+}

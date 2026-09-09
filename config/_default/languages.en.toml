@@ -1,0 +1,23 @@
+disabled = false
+locale   = "en"
+label    = "English"
+weight   = 1
+title    = "Diego Mateus"
+
+[params]
+    displayName = "EN"
+    isoCode     = "en"
+    dateFormat   = "January 2, 2006"
+    description = "Platform Engineering, SRE, and Infrastructure Automation"
+    copyright   = "Diego Mateus"
+
+[params.author]
+    name     = "Diego Mateus"
+    image    = "img/avatar.png"
+    headline = "Senior Cloud Consultant @ Red Hat"
+    bio      = "Hybrid Cloud, OpenShift, Ansible Automation Platform, OpenShift Virtualization, Satellite. Delivering end-to-end cloud infrastructure transformations with the Red Hat portfolio."
+    links    = [
+        { github   = "https://github.com/dfmateus" },
+        { linkedin = "https://linkedin.com/in/dfmateus" },
+        { medium   = "https://medium.com/@dfmateus" },
+    ]

@@ -1,15 +1,33 @@
-<script src="https://giscus.app/client.js"
-    data-repo="dfmateus/dfmateus.github.io"
-    data-repo-id="R_kgDOUTs1Rw"
-    data-category="General"
-    data-category-id="DIC_kwDOUTs1R84DfPB5"
-    data-mapping="pathname"
-    data-strict="0"
-    data-reactions-enabled="1"
-    data-emit-metadata="0"
-    data-input-position="bottom"
-    data-theme="preferred_color_scheme"
-    data-lang="en"
-    crossorigin="anonymous"
-    async>
+<script>
+    function getGiscusTheme() {
+        return document.documentElement.classList.contains("dark") ? "dark" : "light";
+    }
+
+    var giscusScript = document.createElement("script");
+    giscusScript.src = "https://giscus.app/client.js";
+    giscusScript.setAttribute("data-repo", "dfmateus/dfmateus.github.io");
+    giscusScript.setAttribute("data-repo-id", "R_kgDOUTs1Rw");
+    giscusScript.setAttribute("data-category", "General");
+    giscusScript.setAttribute("data-category-id", "DIC_kwDOUTs1R84DfPB5");
+    giscusScript.setAttribute("data-mapping", "pathname");
+    giscusScript.setAttribute("data-strict", "0");
+    giscusScript.setAttribute("data-reactions-enabled", "1");
+    giscusScript.setAttribute("data-emit-metadata", "0");
+    giscusScript.setAttribute("data-input-position", "bottom");
+    giscusScript.setAttribute("data-theme", getGiscusTheme());
+    giscusScript.setAttribute("data-lang", "en");
+    giscusScript.setAttribute("crossorigin", "anonymous");
+    giscusScript.async = true;
+    document.currentScript.parentNode.appendChild(giscusScript);
+
+    var observer = new MutationObserver(function() {
+        var iframe = document.querySelector("iframe.giscus-frame");
+        if (iframe) {
+            iframe.contentWindow.postMessage(
+                { giscus: { setConfig: { theme: getGiscusTheme() } } },
+                "https://giscus.app"
+            );
+        }
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 </script>

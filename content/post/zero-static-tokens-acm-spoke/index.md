@@ -22,10 +22,10 @@ If your organization runs **Red Hat Advanced Cluster Management (ACM)** for Kube
 
 I built an Ansible collection to fix this. It replaces all those per-cluster credentials with a **single read-only credential** on the ACM Hub, fully integrated with AAP and AWX through custom Credential Types, Job Templates, and Workflow Templates. The spoke tokens become temporary, auto-rotated by the klusterlet, and resolved on demand. The collection is called `dfmateus.acm_spoke`.
 
-- **Ansible Galaxy:** `ansible-galaxy collection install dfmateus.acm_spoke`
-- **GitHub Repository:** [dfmateus/acm_spoke](https://github.com/dfmateus/acm_spoke)
+- 📦 **Ansible Galaxy:** `ansible-galaxy collection install dfmateus.acm_spoke`
+- 🔗 **GitHub Repository:** [dfmateus/acm_spoke](https://github.com/dfmateus/acm_spoke)
 
-> **TL;DR:**
+> ⚡ **TL;DR:**
 >
 > **The Problem:** Static `cluster-admin` tokens stored in AAP or AWX create high blast radius and severe credential sprawl.
 >
@@ -33,7 +33,7 @@ I built an Ansible collection to fix this. It replaces all those per-cluster cre
 >
 > **The Impact:** Onboard clusters in under 1 minute; revoke access instantly from the Hub. Fully compatible with enterprise AAP and open-source AWX.
 
-## The problem: credential sprawl in AAP
+## 🚨 The problem: credential sprawl in AAP
 
 In a standard ACM plus AAP or AWX environment, every Job Template that connects to a spoke cluster needs its own credential registered in the controller. The typical setup looks like this:
 
@@ -53,11 +53,11 @@ In a standard ACM plus AAP or AWX environment, every Job Template that connects 
 - **Credential sprawl:** N clusters = N **credentials in AAP/AWX**, N ServiceAccounts on spokes, and N secrets to rotate manually.
 - **No audit trail:** Token creation, extraction, and rotation are manual processes with **no centralized log**.
 
-> **The Operational Cost of Sprawl**
+> **🚨 The Operational Cost of Sprawl**
 >
 > Onboarding a single spoke cluster manually takes **10 to 15 minutes** of context-switching across different APIs, ServiceAccount permissions, and TLS configurations. Across a multi-cloud fleet (OpenShift, AKS, EKS, GKE), nobody rotates these static tokens in practice. This creates a persistent security liability until an auditor asks uncomfortable questions.
 
-## The solution: one Hub credential in AAP, temporary spoke tokens
+## ⚙️ The solution: one Hub credential in AAP, temporary spoke tokens
 
 The collection turns ACM's ManagedServiceAccount (MSA) API into the credential management layer for your entire fleet. Instead of N static credentials in AAP or AWX, you register a single read-only credential pointing to the ACM Hub. When a Job Template needs to access a spoke, the collection reads the MSA Secret from the Hub, extracts a temporary token that the klusterlet issued via `TokenRequest`, and hands it to your playbook as Ansible facts.
 
@@ -71,7 +71,7 @@ The collection turns ACM's ManagedServiceAccount (MSA) API into the credential m
 - **4. Execute Automation:** The playbook uses the resolved token and API endpoint to execute tasks directly on the spoke cluster (OCP or xKS).
 - **5. Background Rotation (Klusterlet Control Plane):** Operating independently in the background, the klusterlet agent on the spoke continuously rotates and syncs fresh tokens back to the Hub before expiration.
 
-> **The Bottom Line:**
+> **🚀 The Bottom Line:**
 >
 > The same fleet of 50 clusters now runs on **1 read-only credential** in AAP or AWX. Tokens have a configurable TTL (default: 30 days) and renew automatically. New clusters get onboarded in **under a minute**, and revoking access across any spoke is a **single command** on the Hub.
 
@@ -88,7 +88,7 @@ The collection turns ACM's ManagedServiceAccount (MSA) API into the credential m
 - **5. Leaked Token Blast Radius:** Shifts from **permanent, unrestricted `cluster-admin` access** to **ephemeral, auto-expiring bearer tokens** constrained by strict TTLs.
 - **6. Pre-Execution Validation:** Upgrades from **zero preflight verification** (failing mid-playbook) to **6 automated preflight checks** executed before reading the token.
 
-## How it works: three ServiceAccounts in layers
+## 🔑 How it works: three ServiceAccounts in layers
 
 The collection uses three ServiceAccounts, each configured with minimum permissions for its explicit role. This is the core architectural detail that usually takes a minute to click: the daily-use credential registered in AAP/AWX is **read-only on the Hub**, yet the token it retrieves carries **`cluster-admin` on the spoke**. They are two separate identities living on two different clusters.
 
@@ -101,7 +101,7 @@ The collection uses three ServiceAccounts, each configured with minimum permissi
 - **3. Ephemeral Token Extraction:** The Hub hands back the short-lived bearer token synced by the klusterlet.
 - **4. Direct Spoke Execution:** AAP/AWX uses this resolved `acm-spoke-automation` token to execute playbook tasks directly against the target spoke cluster.
 
-> **The Key Security Boundary:**
+> **🛡️ The Key Security Boundary:**
 >
 > The `acm-spoke-reader` **never connects to the spoke cluster**. It only reads the Kubernetes Secret residing on the Hub, where ACM's ManagedServiceAccount controller synced the temporary `TokenRequest` token.
 
@@ -115,13 +115,13 @@ The collection uses three ServiceAccounts, each configured with minimum permissi
 - **2. `acm-spoke-reader` (Lives on Hub):** Read-only permissions on the Hub (limited to 5 specific resource types). Zero permissions on any spoke cluster. This is the **sole identity registered as a credential** inside AAP or AWX for day-to-day operations.
 - **3. `acm-spoke-automation` (Lives on Spoke):** `cluster-admin` privileges on the target spoke (configurable). Created automatically on the spoke by the klusterlet via MSA. It uses an ephemeral token with a configurable TTL (default 30 days) that rotates automatically. This is the actual token your playbook tasks execute with.
 
-> **Why is the reader read-only if the spoke token has `cluster-admin`?**
+> **💡 Why is the reader read-only if the spoke token has `cluster-admin`?**
 >
 > Because they are **separate identities**. The `acm-spoke-reader` lives on the Hub and can only read. The `acm-spoke-automation` lives on the spoke and holds the real execution permissions. If the reader token leaks, an attacker can only view spoke tokens that will expire on their own anyway. They cannot create new tokens, escalate privileges, or modify anything on either cluster.
 
 The spoke role is fully configurable. If your downstream automation only needs `view` or `edit` access, set `acm_spoke_token_setup_spoke_cluster_role` during onboarding, and the ManifestWork will apply the exact ClusterRole you specify.
 
-## Setting it up in AAP or AWX
+## 🎛️ Setting it up in AAP or AWX
 
 The collection ships with everything needed to run on AAP or AWX: a dedicated Execution Environment (EE) definition, three custom Credential Types, and Job Template specs ready to create in the UI or import via Configuration as Code (CaC).
 
@@ -144,7 +144,7 @@ The collection ships with everything needed to run on AAP or AWX: a dedicated Ex
 - **4. Credentials:** Maps the specific ServiceAccount tokens (such as the read-only Hub token) to target controller environments.
 - **5. Job Templates:** Wraps the collection playbooks into executable automation jobs inside your AAP or AWX UI.
 
-> **Configuration as Code (CaC) Ready:**
+> **💡 Configuration as Code (CaC) Ready:**
 >
 > To avoid manual UI configuration, you can import all of these objects directly using the `infra.controller_configuration` collection (or `awx.awx`). Ready-to-import YAML and JSON schema definitions for all 3 Credential Types, 3 Job Templates, Inventory, and Project are available in the repository at [examples/aap/](https://github.com/dfmateus/acm_spoke/tree/main/examples/aap) and [examples/credentials/](https://github.com/dfmateus/acm_spoke/tree/main/examples/credentials).
 
@@ -200,7 +200,7 @@ Each Job Template maps to one playbook and one Credential Type. All three use th
 - **ACM Spoke Resolver:** Runs `playbooks/resolve_spoke_access.yml` with the Resolver credential (`acm-spoke-reader`, read-only). This is the daily-use template. Add a required survey field `target_cluster` (text) so the operator specifies which spoke to resolve. The resolver runs 6 preflight checks before reading the MSA Secret. If any check fails, the job output shows the exact problem and the `oc` command to diagnose it. Extra vars: `var_no_log: true`.
 - **ACM Spoke Setup:** Runs `playbooks/setup_spoke_cluster.yml` with the Setup credential (`acm-spoke-provisioner`). Provisions a single spoke without re-running the full bootstrap. Add a required survey field `target_cluster` (text). Use this to onboard one cluster without touching the rest.
 
-## Using the resolver in your automation
+## 🔧 Using the resolver in your automation
 
 There are two ways to consume the resolver in AAP or AWX. Pick the one that fits your use case.
 
@@ -229,7 +229,7 @@ The resolver playbook already includes `set_stats` at the end:
   no_log: true
 ```
 
-> **Security Notice: Sensitive Data Sanitization**
+> **🔒 Security Notice: Sensitive Data Sanitization**
 >
 > Always enforce `no_log: true` on tasks handling resolved facts. Without it, Ansible Controller will print raw API tokens directly to the Job Output and Workflow Stats. Adding `no_log: true` guarantees that:
 >
@@ -264,7 +264,7 @@ The downstream JT playbook consumes the facts as regular extra vars:
         label: "{{ item.metadata.name }}"
 ```
 
-> **Which option should you choose?**
+> **💡 Which option should you choose?**
 >
 > Pick **Option A** if you already have standard playbooks in Git that you want to reuse without changing a single line of code. If you prefer keeping everything inside a single Job Template without creating Workflow nodes, **Option B** below is the way to go.
 
@@ -328,7 +328,7 @@ Here is a complete playbook example using this pattern:
 
 The Job Template in AAP or AWX requires the **Resolver credential** (which injects `acm_spoke_token_resolver_hub_url` and `acm_spoke_token_resolver_hub_token`) and a survey field for `target_cluster`.
 
-## Multi-Cluster Operations in a Single Playbook
+## 🌐 Multi-Cluster Operations in a Single Playbook
 
 You can also loop over multiple spokes within a single playbook run. The resolver is idempotent, making it safe to call multiple times with different cluster names:
 
@@ -375,11 +375,11 @@ You can also loop over multiple spokes within a single playbook run. The resolve
     msg: "{{ __cluster_name }} - {{ __nodes.resources | length }} nodes"
 ```
 
-> **Multi-Cloud Portability Made Simple**
+> **💡 Multi-Cloud Portability Made Simple**
 >
 > This multi-cluster pattern works identically across OpenShift spokes (OCP, ARO, ROSA on **port 6443**) and xKS spokes (AKS, EKS, GKE on **port 443**). The resolver auto-detects the API URL and TLS settings for each cluster, keeping your downstream tasks **100% platform-agnostic**.
 
-## Real-world downstream examples
+## 🔌 Real-world downstream examples
 
 Whether you use **Option A (Workflow)** or **Option B (`include_role`)**, downstream automation is identical. Here are common spoke-level tasks that work on any platform:
 
@@ -437,17 +437,17 @@ Whether you use **Option A (Workflow)** or **Option B (`include_role`)**, downst
 - **2. Uniform Fact Structure:** The resolver outputs standardized facts (`spoke_token`, `spoke_api_url`, `spoke_validate_certs`) regardless of the target cloud provider or Kubernetes distribution.
 - **3. Decoupled Playbook Execution:** Any downstream playbook — from health checks and diagnostics to workload deployments and incident scaling — consumes these identical facts without storing cluster credentials.
 
-> **Zero Credential Management in Playbooks:**
+> **🛡️ Zero Credential Management in Playbooks:**
 >
 > In both options, downstream playbooks never handle persistent credentials. They receive an ephemeral bearer token that expires automatically. You can build a whole library of spoke automations in AAP or AWX sharing the same resolver, the same read-only Hub credential, and the same Execution Environment.
 
-## TLS auto-detection
+## 🌐 TLS auto-detection
 
-> **Automated Multi-Cloud Certificate Handling**
+> **🌐 Automated Multi-Cloud Certificate Handling**
 >
 > One detail that saves time in multi-cloud fleets: the resolver auto-detects whether to validate TLS certificates based on the ManagedCluster's `vendor` label. OpenShift clusters (OCP, ARO, ROSA) use public CAs, setting `validate_certs: true`. Kubernetes clusters (AKS, EKS, GKE) use internal CAs, setting `validate_certs: false`. No per-cluster TLS configuration is needed in AAP or AWX!
 
-## Platform support
+## 🖥️ Platform support
 
 The collection works with any Kubernetes distribution imported as a `ManagedCluster` (a.k.a. **spoke**) on the ACM Hub. The MSA API and ManifestWork operate purely through the **klusterlet**, with **zero dependency** on OpenShift-specific APIs on the spoke side.
 
@@ -464,19 +464,19 @@ The collection works with any Kubernetes distribution imported as a `ManagedClus
 - **OpenShift Family (`vendor: OpenShift`):** OCP On-Prem, ARO, ROSA, and ROSA HCP.
 - **xKS Ecosystem (`vendor: Kubernetes`):** AKS, EKS, GKE, IBM IKS, and Vanilla Kubernetes (requires active klusterlet).
 
-> **Real-world Test Results:** Validated in a live RHACM 2.12+ environment across ARO, ROSA, and xKS clusters (AKS, EKS, and IKS). All **16 end-to-end tests passed**.
+> **🧪 Real-world Test Results:** Validated in a live RHACM 2.12+ environment across ARO, ROSA, and xKS clusters (AKS, EKS, and IKS). All **16 end-to-end tests passed**.
 
-## What changes in practice
+## ⚡ What changes in practice
 
-**Day-2 Impact at a Glance**
+**⚡ Day-2 Impact at a Glance**
 
 - **New cluster joins the fleet:** Without the collection, someone logs into the new cluster, creates a ServiceAccount, extracts the token, and registers a new credential in AAP or AWX (taking **10 to 15 minutes**). With the collection, launch the Bootstrap JT: it auto-discovers and provisions the new cluster in **under a minute**, completely idempotently.
 - **Security incident requires immediate revocation:** Delete the `ManagedServiceAccount` CR on the Hub. The klusterlet removes the SA on the spoke automatically in **under a minute** with a single command. Even if you do nothing, the token expires automatically when its TTL runs out.
 - **Quarterly compliance audit:** Eliminates credential silos. All `ManagedServiceAccount` CRs stay on the Hub with status, TTL, and Kubernetes API audit logs visible and centralized.
 
-## Limitations and known constraints
+## ⚠️ Limitations and known constraints
 
-**Prerequisites & Operational Considerations**
+**⚠️ Prerequisites & Operational Considerations**
 
 - **RHACM Version:** Requires **RHACM 2.10 or later** on the Hub cluster with the `managed-serviceaccount` addon enabled.
 - **Klusterlet Health:** The klusterlet must be active on each spoke for token rotation. If a spoke stays offline longer than the token TTL, the token expires and the resolver reports a preflight failure.
@@ -484,18 +484,18 @@ The collection works with any Kubernetes distribution imported as a `ManagedClus
 - **Dependencies:** Built exclusively with standard `kubernetes.core` and `ansible.builtin` modules, requiring only the `oc` CLI inside the Execution Environment.
 - **Job Execution Window:** Ephemeral tokens issued via `TokenRequest` carry a defined TTL, safely supporting long-running playbook runs.
 
-## Wrap up
+## 🏁 Wrap up
 
 The collection is at **version 1.0.1**. Molecule tests, GitHub Actions CI, and expanded multi-cloud validation are actively on the roadmap.
 
-**Ready to eliminate static cluster tokens?**
+🤔 **Ready to eliminate static cluster tokens?**
 
-Grab the collection from Ansible Galaxy or check out the playbooks, architecture, and CaC examples on GitHub:
+🚀 Grab the collection from Ansible Galaxy or check out the playbooks, architecture, and CaC examples on GitHub:
 
 ```bash
 ansible-galaxy collection install dfmateus.acm_spoke
 ```
 
-- **GitHub Repository:** [https://github.com/dfmateus/acm_spoke](https://github.com/dfmateus/acm_spoke)
+- 🔗 **GitHub Repository:** [https://github.com/dfmateus/acm_spoke](https://github.com/dfmateus/acm_spoke)
 
 *Contributions, issues, and feature requests are welcome!*

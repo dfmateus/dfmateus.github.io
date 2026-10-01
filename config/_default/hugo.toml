@@ -1,4 +1,5 @@
 baseURL                = "https://dfmateus.github.io/"
+title                  = "Diego Mateus Blog"
 defaultContentLanguage = "en"
 theme                  = "blowfish"
 

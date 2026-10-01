@@ -1,7 +1,9 @@
 ---
-title: "Why I Started This Blog"
+title: "Diego Mateus Blog"
 description: "Platform Engineering, SRE, and Infrastructure Automation"
 ---
+
+## Why I Started This Blog
 
 I've been working with infrastructure and automation for over a decade. In that time, I've lost count of how many blog posts, Stack Overflow answers, GitHub issues, and community-maintained docs got me unstuck at 2 AM during an incident, or saved me days of trial and error on a migration I'd never done before.
 

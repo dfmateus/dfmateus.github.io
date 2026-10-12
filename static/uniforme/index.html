@@ -182,13 +182,14 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:4px 0 26px}
 
   <h3 class="pricegroup">💰 Kit completo <span>Camisa + Shorts Dry-Fit</span></h3>
   <table class="price">
-    <tr><td>P ao GG</td><td>R$ 95,00</td></tr>
+    <tr><td>P ao GG, shorts masculino</td><td>R$ 95,00</td></tr>
+    <tr><td>P ao GG, shorts feminino</td><td>R$ 100,00</td></tr>
     <tr><td>G1</td><td>R$ 120,00</td></tr>
     <tr><td>G2</td><td>R$ 130,00</td></tr>
     <tr><td>G3</td><td>R$ 160,00</td></tr>
     <tr><td>Infantil (2 ao 16)</td><td>R$ 80,00</td></tr>
   </table>
-  <p class="hint" style="margin:-12px 0 18px">Acima de GG o kit é a soma das duas peças. Camisa e shorts podem ter tamanhos diferentes, e aí o total é calculado na hora.</p>
+  <p class="hint" style="margin:-12px 0 18px">O kit é sempre a soma da camisa com o shorts. Camisa e shorts podem ter tamanhos diferentes, e o total é calculado na hora.</p>
 
   <h3 class="pricegroup">👕 Camisetas avulsas <span>Dry-Fit c/ proteção UV</span></h3>
   <table class="price">
@@ -259,7 +260,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:4px 0 26px}
   <!-- 02 - KIT -->
   <section class="card hidden" id="sec-kit" data-type="kit">
     <h2><span class="num">02</span> Kit completo</h2>
-    <p class="lead">Camisa + shorts Dry-Fit com proteção UV. P ao GG sai por R$&nbsp;95,00. Nos outros tamanhos o total é a soma das duas peças.</p>
+    <p class="lead">Camisa + shorts Dry-Fit com proteção UV. O total é a soma das duas peças, e aparece aqui embaixo enquanto você escolhe.</p>
 
     <fieldset id="f-kitCamisaTamanho">
       <span class="legend">Tamanho da camisa <span class="req">*</span></span>
@@ -560,12 +561,12 @@ function shortsPrice(size, model) {
   if (size === "Infantil") return 30;
   return 0;
 }
-// The kit is the sum of both pieces, with one exception: P to GG is a flat R$ 95,00.
-// That exception is what the kit table in the Google Form calls the promo price
-// (infantil 80, G1 120, G2 130, G3 160 are already the plain sum).
+// Uma regra só: o kit é a soma das duas peças. O "preço fixo" de R$ 95,00 que
+// existia antes era 60 + 35, a soma com shorts masculino, então não era desconto
+// nenhum. Com shorts feminino a soma dá R$ 100,00, e cobrar 95 tirava R$ 5,00 do
+// caixa do time em cada kit feminino.
 function kitPrice(shirtSize, shortsSize, shortsModel, longSleeve) {
   var extra = longSleeve ? LONG_SLEEVE_EXTRA : 0;
-  if (STANDARD.indexOf(shirtSize) > -1 && STANDARD.indexOf(shortsSize) > -1) return 95 + extra;
   return shirtBasePrice(shirtSize) + extra + shortsPrice(shortsSize, shortsModel);
 }
 

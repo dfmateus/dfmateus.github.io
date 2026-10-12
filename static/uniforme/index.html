@@ -190,6 +190,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:4px 0 26px}
     <tr><td>G2</td><td>R$ 80,00</td></tr>
     <tr><td>G3</td><td>R$ 110,00</td></tr>
     <tr><td>Infantil (2 ao 16)</td><td>R$ 50,00</td></tr>
+    <tr><td>Manga longa (adicional por camisa)</td><td>+ R$ 10,00</td></tr>
   </table>
 
   <h3 class="pricegroup">🩳 Shorts avulsos <span>Dry-Fit c/ proteção UV</span></h3>
@@ -270,6 +271,13 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:4px 0 26px}
       <p class="err">Escolha o modelo da camisa.</p>
     </fieldset>
 
+    <fieldset id="f-kitManga" class="hidden">
+      <span class="legend">Manga <span class="req">*</span></span>
+      <div class="chips" data-chips="kitManga"></div>
+      <p class="hint">A manga longa custa R$ 10,00 a mais por camisa.</p>
+      <p class="err">Escolha o comprimento da manga.</p>
+    </fieldset>
+
     <fieldset id="f-kitShortsTamanho">
       <span class="legend">Tamanho do shorts <span class="req">*</span></span>
       <div class="chips" data-chips="kitShortsTamanho"></div>
@@ -312,6 +320,13 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:4px 0 26px}
       <span class="legend">Modelo da camisa <span class="req">*</span></span>
       <div class="chips" data-chips="camisaModelo"></div>
       <p class="err">Escolha o modelo da camisa.</p>
+    </fieldset>
+
+    <fieldset id="f-camisaManga" class="hidden">
+      <span class="legend">Manga <span class="req">*</span></span>
+      <div class="chips" data-chips="camisaManga"></div>
+      <p class="hint">A manga longa custa R$ 10,00 a mais por camisa.</p>
+      <p class="err">Escolha o comprimento da manga.</p>
     </fieldset>
 
     <fieldset id="f-camisaTamanho">
@@ -454,6 +469,14 @@ const SIZES = ["P", "M", "G", "GG", "G1", "G2", "G3", "Infantil"];
 const CHILD_SIZES = ["2", "4", "6", "8", "10", "12", "14", "16"];
 const SHIRT_MODELS = ["Normal", "Regata", "Feminino Baby look"];
 const SHORTS_MODELS = ["Masculino", "Feminino"];
+// Manga longa é adicional na tabela da M33, não um modelo. Regata não tem manga,
+// então a escolha some quando o modelo é regata.
+const SLEEVES = [
+  { value: "Curta", label: "Manga curta" },
+  { value: "Longa", label: "Manga longa (+R$ 10,00)" }
+];
+const LONG_SLEEVE_EXTRA = 10;   // reais por peça, "MANGA LONGA ADICIONAR R$ 10,00"
+const LONG_SLEEVE_SUFFIX = " manga longa";
 const ORDER_TYPES = [
   { value: "kit", label: "Kit completo (camisa + shorts)" },
   { value: "camisa", label: "Somente camisa" },
@@ -488,6 +511,8 @@ renderChips("tipo", ORDER_TYPES);
   .forEach(function (n) { renderChips(n, SIZES); });
 renderChips("kitCamisaModelo", SHIRT_MODELS);
 renderChips("camisaModelo", SHIRT_MODELS);
+renderChips("kitManga", SLEEVES);
+renderChips("camisaManga", SLEEVES);
 renderChips("kitShortsModelo", SHORTS_MODELS);
 renderChips("shortsModelo", SHORTS_MODELS);
 ["kitCamisaInfantil", "kitShortsInfantil", "camisaInfantil", "shortsInfantil"].forEach(renderChildSelect);
@@ -511,7 +536,10 @@ function digits(s) {
  * ------------------------------------------------------------------ */
 const STANDARD = ["P", "M", "G", "GG"];
 
-function shirtPrice(size) {
+function shirtPrice(size, longSleeve) {
+  return shirtBasePrice(size) + (longSleeve ? LONG_SLEEVE_EXTRA : 0);
+}
+function shirtBasePrice(size) {
   if (STANDARD.indexOf(size) > -1) return 60;
   if (size === "G1") return 70;
   if (size === "G2") return 80;
@@ -528,9 +556,10 @@ function shortsPrice(size, model) {
 // The kit is the sum of both pieces, with one exception: P to GG is a flat R$ 95,00.
 // That exception is what the kit table in the Google Form calls the promo price
 // (infantil 80, G1 120, G2 130, G3 160 are already the plain sum).
-function kitPrice(shirtSize, shortsSize, shortsModel) {
-  if (STANDARD.indexOf(shirtSize) > -1 && STANDARD.indexOf(shortsSize) > -1) return 95;
-  return shirtPrice(shirtSize) + shortsPrice(shortsSize, shortsModel);
+function kitPrice(shirtSize, shortsSize, shortsModel, longSleeve) {
+  var extra = longSleeve ? LONG_SLEEVE_EXTRA : 0;
+  if (STANDARD.indexOf(shirtSize) > -1 && STANDARD.indexOf(shortsSize) > -1) return 95 + extra;
+  return shirtBasePrice(shirtSize) + extra + shortsPrice(shortsSize, shortsModel);
 }
 
 const brl = (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -544,9 +573,9 @@ const brl = (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL
  * which of the two the person picked.
  * ------------------------------------------------------------------ */
 const FIELDS = {
-  kit: ["camisaTamanho", "camisaInfantil", "camisaModelo",
+  kit: ["camisaTamanho", "camisaInfantil", "camisaModelo", "manga",
         "shortsTamanho", "shortsInfantil", "shortsModelo", "estampa", "numero"],
-  camisa: ["camisaModelo", "camisaTamanho", "camisaInfantil", "estampa", "numero"],
+  camisa: ["camisaModelo", "manga", "camisaTamanho", "camisaInfantil", "estampa", "numero"],
   shorts: ["shortsModelo", "shortsTamanho", "shortsInfantil", "numero"]
 };
 
@@ -554,10 +583,10 @@ const FIELDS = {
 // a canonical field name to an element id is spelled out instead of derived.
 const STATIC_IDS = {
   kit: { camisaTamanho: "kitCamisaTamanho", camisaInfantil: "kitCamisaInfantil",
-         camisaModelo: "kitCamisaModelo", shortsTamanho: "kitShortsTamanho",
+         camisaModelo: "kitCamisaModelo", manga: "kitManga", shortsTamanho: "kitShortsTamanho",
          shortsInfantil: "kitShortsInfantil", shortsModelo: "kitShortsModelo",
          estampa: "kitEstampa", numero: "kitNumero" },
-  camisa: { camisaModelo: "camisaModelo", camisaTamanho: "camisaTamanho",
+  camisa: { camisaModelo: "camisaModelo", manga: "camisaManga", camisaTamanho: "camisaTamanho",
             camisaInfantil: "camisaInfantil", estampa: "camisaEstampa", numero: "camisaNumero" },
   shorts: { shortsModelo: "shortsModelo", shortsTamanho: "shortsTamanho",
             shortsInfantil: "shortsInfantil", numero: "shortsNumero" }
@@ -582,6 +611,7 @@ function readItem(tipo, ids, qtd) {
     tipo: tipo,
     qtd: qtd,
     camisaModelo: ids.camisaModelo ? radio(ids.camisaModelo) : "",
+    manga: ids.manga ? radio(ids.manga) : "",
     camisaBase: ids.camisaTamanho ? radio(ids.camisaTamanho) : "",
     camisaChild: ids.camisaInfantil ? get("camisaInfantil") : "",
     shortsModelo: ids.shortsModelo ? radio(ids.shortsModelo) : "",
@@ -605,28 +635,42 @@ function readItems() {
 }
 
 function itemUnitPrice(item) {
-  if (item.tipo === "kit") return kitPrice(item.camisaBase, item.shortsBase, item.shortsModelo);
-  if (item.tipo === "camisa") return shirtPrice(item.camisaBase);
+  var longa = item.manga === "Longa";
+  if (item.tipo === "kit") return kitPrice(item.camisaBase, item.shortsBase, item.shortsModelo, longa);
+  if (item.tipo === "camisa") return shirtPrice(item.camisaBase, longa);
   if (item.tipo === "shorts") return shortsPrice(item.shortsBase, item.shortsModelo);
   return 0;
 }
 
+// Regata não tem manga, então nesses casos a pergunta nem aparece.
+function needsSleeve(model) {
+  return !!model && model !== "Regata";
+}
+
 function itemComplete(item) {
+  var sleeveOk = !needsSleeve(item.camisaModelo) || !!item.manga;
   if (item.tipo === "kit") {
-    return !!(item.camisaBase && item.camisaModelo && item.shortsBase && item.shortsModelo);
+    return !!(item.camisaBase && item.camisaModelo && sleeveOk && item.shortsBase && item.shortsModelo);
   }
-  if (item.tipo === "camisa") return !!(item.camisaBase && item.camisaModelo);
+  if (item.tipo === "camisa") return !!(item.camisaBase && item.camisaModelo && sleeveOk);
   return !!(item.shortsBase && item.shortsModelo);
+}
+
+// O modelo que vai para a planilha e para a confecção já carrega a manga, então
+// a grade de produção separa "Normal" de "Normal manga longa" sozinha.
+function shirtModelWithSleeve(item) {
+  if (!item.camisaModelo) return "";
+  return item.camisaModelo + (item.manga === "Longa" ? LONG_SLEEVE_SUFFIX : "");
 }
 
 function itemLabel(item) {
   if (item.tipo === "kit") {
-    return "Kit " + sizeLabel(item.camisaBase, item.camisaChild) +
+    return "Kit " + (item.manga === "Longa" ? "manga longa " : "") + sizeLabel(item.camisaBase, item.camisaChild) +
       (item.camisaBase === item.shortsBase && item.camisaChild === item.shortsChild
         ? "" : " + shorts " + sizeLabel(item.shortsBase, item.shortsChild));
   }
   if (item.tipo === "camisa") {
-    return "Camisa " + item.camisaModelo.toLowerCase() + " " + sizeLabel(item.camisaBase, item.camisaChild);
+    return "Camisa " + shirtModelWithSleeve(item).toLowerCase() + " " + sizeLabel(item.camisaBase, item.camisaChild);
   }
   return "Shorts " + item.shortsModelo.toLowerCase() + " " + sizeLabel(item.shortsBase, item.shortsChild);
 }
@@ -723,6 +767,10 @@ function variantBlock(tipo, index) {
   let body = "";
   if (tipo === "kit" || tipo === "camisa") {
     body += chipsField(ids.camisaModelo, "Modelo da camisa", SHIRT_MODELS) +
+            '<fieldset id="f-' + ids.manga + '" class="hidden">' +
+            '<span class="legend">Manga <span class="req">*</span></span>' +
+            '<div class="chips" data-chips="' + ids.manga + '"></div>' +
+            '<p class="err">Escolha o comprimento da manga.</p></fieldset>' +
             chipsField(ids.camisaTamanho, "Tamanho da camisa", SIZES) +
             childField(ids.camisaInfantil, "Tamanho infantil da camisa");
   }
@@ -762,6 +810,7 @@ function renderVariantBlocks() {
   for (let i = 1; i <= quantity(); i++) {
     const ids = idsFor(tipo, i);
     if (ids.camisaModelo) renderChips(ids.camisaModelo, SHIRT_MODELS);
+    if (ids.manga) renderChips(ids.manga, SLEEVES);
     if (ids.camisaTamanho) renderChips(ids.camisaTamanho, SIZES);
     if (ids.camisaInfantil) renderChildSelect(ids.camisaInfantil);
     if (ids.shortsModelo) renderChips(ids.shortsModelo, SHORTS_MODELS);
@@ -794,6 +843,7 @@ function syncSections() {
   $("sec-variados").classList.toggle("hidden", !varied);
 
   syncChildFields();
+  syncSleeveFields();
   updateTotal();
 }
 
@@ -805,6 +855,21 @@ function currentIdMaps() {
   const maps = [];
   for (let i = 1; i <= quantity(); i++) maps.push(idsFor(tipo, i));
   return maps;
+}
+
+// A pergunta de manga só existe quando o modelo da camisa comporta manga.
+function syncSleeveFields() {
+  currentIdMaps().forEach(function (ids) {
+    if (!ids.manga) return;
+    const wrap = $("f-" + ids.manga);
+    if (!wrap) return;
+    const on = needsSleeve(radio(ids.camisaModelo));
+    wrap.classList.toggle("hidden", !on);
+    if (!on) {
+      form.querySelectorAll('input[name="' + ids.manga + '"]').forEach(function (el) { el.checked = false; });
+      wrap.classList.remove("invalid");
+    }
+  });
 }
 
 // The "tamanho infantil" dropdown only exists while the matching size is "Infantil".
@@ -850,7 +915,10 @@ function validate() {
   }
 
   currentIdMaps().forEach(function (ids) {
-    if (ids.camisaModelo) check("f-" + ids.camisaModelo, !!radio(ids.camisaModelo));
+    if (ids.camisaModelo) {
+      check("f-" + ids.camisaModelo, !!radio(ids.camisaModelo));
+      if (needsSleeve(radio(ids.camisaModelo))) check("f-" + ids.manga, !!radio(ids.manga));
+    }
     if (ids.camisaTamanho) {
       check("f-" + ids.camisaTamanho, !!radio(ids.camisaTamanho));
       if (radio(ids.camisaTamanho) === "Infantil") {
@@ -880,7 +948,7 @@ function buildOrder(orderId) {
     return {
       tipo: tipo,
       quantidade: item.qtd,
-      camisa_modelo: item.camisaModelo || "",
+      camisa_modelo: shirtModelWithSleeve(item),
       camisa_tamanho: item.camisaBase ? sizeLabel(item.camisaBase, item.camisaChild) : "",
       shorts_modelo: item.shortsModelo || "",
       shorts_tamanho: item.shortsBase ? sizeLabel(item.shortsBase, item.shortsChild) : "",
@@ -1104,6 +1172,7 @@ form.addEventListener("change", function (event) {
     return;
   }
   if (isSizeRadio(name)) syncChildFields();
+  if (/camisaModelo$/.test(name || "")) syncSleeveFields();
   updateTotal();
   // Clear the error as soon as the field is answered.
   const field = event.target.closest(".field, fieldset");

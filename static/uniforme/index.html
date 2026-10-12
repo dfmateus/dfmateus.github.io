@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2b0b45">
+<link rel="icon" type="image/png" href="favicon-guerreiros.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Pedido Novo Uniforme Guerreiros F.C. 2026</title>
+<meta property="og:title" content="Pedido Novo Uniforme Guerreiros F.C. 2026">
+<meta property="og:description" content="A Opção 3 venceu a votação. Escolha seu tamanho, modelo e número. O valor total aparece na hora.">
+<meta property="og:image" content="https://dfmateus.github.io/uniforme/uniforme-opcao-3.jpg">
+<meta property="og:type" content="website">
+<style>
+:root{
+  --purple:#6d28d9; --purple-deep:#3b0764; --purple-soft:#f3ecff;
+  --ink:#1d1526; --muted:#6b6478; --line:#e6dff0; --bg:#f6f3fb;
+  --ok:#15803d; --err:#b91c1c; --radius:16px;
+}
+*{box-sizing:border-box}
+.hidden{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.5;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+
+/* Header mirrors the uniform: purple fading into black */
+header{background:linear-gradient(160deg,#6d28d9 0%,#3b0764 45%,#120a1c 100%);color:#fff;
+  padding:34px 18px 28px;text-align:center}
+header .eyebrow{font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;opacity:.75}
+header h1{font-size:clamp(1.5rem,5.2vw,2.15rem);line-height:1.15;margin:8px 0 10px;letter-spacing:.01em}
+header p{max-width:620px;margin:0 auto;color:#e7dcff;font-size:.97rem}
+header .crest{display:block;margin:0 auto 10px;width:112px;height:auto;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+
+main{max-width:780px;margin:20px auto 0;padding:0 14px 48px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px;margin:14px 0;box-shadow:0 6px 20px rgba(42,18,49,.05)}
+.card h2{font-size:1.05rem;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.card h2 .num{background:var(--purple-soft);color:var(--purple-deep);font-size:.78rem;
+  font-weight:800;border-radius:7px;padding:3px 8px}
+.card .lead{color:var(--muted);font-size:.89rem;margin:0 0 16px}
+
+figure{margin:0}
+/* Capped height so the form is not pushed below the fold on a desktop screen.
+   On a phone the width limit wins first and nothing changes. */
+figure img{display:block;margin:0 auto;max-width:100%;max-height:420px;width:auto;height:auto;
+  border-radius:12px;border:1px solid var(--line)}
+figcaption{font-size:.82rem;color:var(--muted);margin-top:8px;text-align:center}
+
+.checklist{margin:16px 0 0;padding:0;list-style:none}
+.checklist li{position:relative;padding:5px 0 5px 26px;font-size:.92rem}
+.checklist li::before{content:"✓";position:absolute;left:0;top:5px;color:var(--purple);font-weight:800}
+
+h3.pricegroup{font-size:.95rem;margin:20px 0 8px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+h3.pricegroup:first-of-type{margin-top:4px}
+h3.pricegroup span{font-size:.78rem;font-weight:500;color:var(--muted)}
+table.price{width:100%;border-collapse:collapse;font-size:.92rem;margin-bottom:18px}
+table.price td{padding:8px 0;border-bottom:1px solid var(--line)}
+table.price td:last-child{text-align:right;font-weight:750;white-space:nowrap;color:var(--purple-deep)}
+table.price tr:last-child td{border-bottom:0}
+
+.field{margin:16px 0}
+.field:first-of-type{margin-top:0}
+label,.legend{display:block;font-size:.92rem;font-weight:650;margin-bottom:7px}
+.req{color:var(--purple);font-weight:800}
+input[type=text],input[type=tel],select,textarea{
+  width:100%;padding:12px;border:1px solid #d6cce2;border-radius:11px;background:#fff;
+  font:inherit;color:var(--ink)}
+input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:3px solid #cdb2fb;outline-offset:1px;border-color:var(--purple)}
+textarea{resize:vertical}
+.hint{font-size:.81rem;color:var(--muted);margin:6px 0 0}
+.upper{text-transform:uppercase}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+fieldset{border:0;padding:0;margin:16px 0}
+fieldset:first-of-type{margin-top:0}
+
+/* Radio chips: easier to hit on a phone than a dropdown */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative;display:inline-flex}
+.chip input{position:absolute;inset:0;opacity:0;cursor:pointer;margin:0}
+.chip span{display:inline-flex;align-items:center;justify-content:center;min-width:52px;
+  padding:10px 14px;border:1px solid #d6cce2;border-radius:11px;background:#fff;
+  font-size:.93rem;font-weight:620;cursor:pointer;transition:background .12s,border-color .12s}
+.chip input:checked+span{background:var(--purple);border-color:var(--purple);color:#fff}
+.chip input:focus-visible+span{outline:3px solid #cdb2fb;outline-offset:1px}
+.chips.wide .chip span{min-width:0;flex:1}
+.chips.stack{flex-direction:column}
+.chips.stack .chip,.chips.stack .chip span{width:100%}
+.chips.stack .chip span{justify-content:flex-start}
+
+.err{display:none;color:var(--err);font-size:.84rem;font-weight:620;margin-top:7px}
+.invalid .err{display:block}
+.invalid .chip span,.invalid input[type=text],.invalid input[type=tel],.invalid select{border-color:var(--err)}
+
+.pricebox{background:var(--purple-soft);border:1px solid #e0d0ff;border-radius:14px;padding:18px}
+.totalrow{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.total{font-size:2.1rem;font-weight:850;color:var(--purple-deep);white-space:nowrap;line-height:1}
+.small{font-size:.83rem;color:var(--muted)}
+.breakdown{margin:12px 0 0;padding:12px 0 0;border-top:1px dashed #cdb8f0;font-size:.86rem}
+.breakdown div{display:flex;justify-content:space-between;gap:12px;padding:2px 0}
+
+button{border:0;border-radius:12px;padding:14px 16px;font:inherit;font-weight:750;cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed}
+.primary{background:var(--purple);color:#fff;width:100%;font-size:1rem}
+.primary:hover:not(:disabled){background:#5b21b6}
+.secondary{background:#efe7fb;color:#42176d;width:100%}
+.secondary:hover:not(:disabled){background:#e5d8f8}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+
+.pix{background:#fbf9fe;border:1px dashed #bda6d8;border-radius:12px;padding:16px;overflow-wrap:anywhere}
+.pix div+div{margin-top:4px}
+.notice{font-size:.87rem;color:#5d5169}
+.banner{border-radius:12px;padding:14px;margin-top:16px;font-size:.92rem}
+.banner.ok{background:#eafaf0;border:1px solid #b6e6c9;color:#14532d}
+.banner.warn{background:#fff7e6;border:1px solid #f3dca6;color:#7a4b06}
+.banner.bad{background:#fdecec;border:1px solid #f3bfbf;color:#7f1d1d}
+.banner strong{display:block;margin-bottom:4px}
+pre.summary{white-space:pre-wrap;font:inherit;font-size:.9rem;background:#faf8fd;
+  border:1px solid var(--line);border-radius:11px;padding:14px;margin:12px 0}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:4px 0 26px}
+
+@media(max-width:600px){
+  .two,.actions{grid-template-columns:1fr}
+  .card{padding:16px}
+  .total{font-size:1.8rem}
+  .chip span{min-width:46px;padding:10px 12px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <img class="crest" src="escudo-guerreiros.png" width="112" height="160"
+       alt="Escudo do Guerreiros F.C.: guerreiro com elmo, escudo e espada erguida">
+  <h1>PEDIDO NOVO UNIFORME<br>GUERREIROS F.C. 2026</h1>
+  <p>Fala, rapaziada! A Opção 3 (roxo e preto com detalhes em branco) venceu a votação 🏆<br>
+     Monte o seu pedido abaixo: o valor total aparece na hora.</p>
+</header>
+
+<main>
+
+<section class="card">
+  <figure>
+    <img src="uniforme-opcao-3.jpg" alt="Arte do uniforme: camisa com degradê roxo e preto, nome e número em branco, e shorts com a faixa GUERREIROS na lateral" loading="lazy">
+    <figcaption>Degradê roxo e preto com números, nomes e detalhes totalmente em branco puro.</figcaption>
+  </figure>
+
+  <div class="banner warn" style="margin-top:18px">
+    <strong>⚠️ Preencha com atenção</strong>
+    Para garantir o seu tamanho, nome e número corretos na confecção.
+  </div>
+
+  <ul class="checklist">
+    <li>Confira o tamanho de cada peça</li>
+    <li>Escolha corretamente o modelo da camisa</li>
+    <li>Informe o nome e o número que deseja estampar</li>
+    <li>Confira os valores antes de enviar</li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2><span class="num">📊</span> Tabela de valores</h2>
+  <p class="lead">Uniforme confeccionado pela M33 Sports.</p>
+
+  <h3 class="pricegroup">💰 Kit completo <span>Camisa + Shorts Dry-Fit</span></h3>
+  <table class="price">
+    <tr><td>P ao GG</td><td>R$ 95,00</td></tr>
+    <tr><td>G1</td><td>R$ 120,00</td></tr>
+    <tr><td>G2</td><td>R$ 130,00</td></tr>
+    <tr><td>G3</td><td>R$ 160,00</td></tr>
+    <tr><td>Infantil (2 ao 16)</td><td>R$ 80,00</td></tr>
+  </table>
+  <p class="hint" style="margin:-12px 0 18px">Acima de GG o kit é a soma das duas peças. Camisa e shorts podem ter tamanhos diferentes, e aí o total é calculado na hora.</p>
+
+  <h3 class="pricegroup">👕 Camisetas avulsas <span>Dry-Fit c/ proteção UV</span></h3>
+  <table class="price">
+    <tr><td>P ao GG (Normal, Regata ou Baby look)</td><td>R$ 60,00</td></tr>
+    <tr><td>G1</td><td>R$ 70,00</td></tr>
+    <tr><td>G2</td><td>R$ 80,00</td></tr>
+    <tr><td>G3</td><td>R$ 110,00</td></tr>
+    <tr><td>Infantil (2 ao 16)</td><td>R$ 50,00</td></tr>
+  </table>
+
+  <h3 class="pricegroup">🩳 Shorts avulsos <span>Dry-Fit c/ proteção UV</span></h3>
+  <table class="price">
+    <tr><td>P ao GG (Masculino)</td><td>R$ 35,00</td></tr>
+    <tr><td>P ao GG (Feminino)</td><td>R$ 40,00</td></tr>
+    <tr><td>G1 / G2 / G3</td><td>R$ 50,00</td></tr>
+    <tr><td>Infantil (2 ao 16)</td><td>R$ 30,00</td></tr>
+  </table>
+</section>
+
+<form id="order" novalidate>
+  <!-- Honeypot. A human never sees this; bots fill every field they find. -->
+  <div class="hp" aria-hidden="true"><label for="website">Não preencha</label><input type="text" id="website" name="website" tabindex="-1" autocomplete="off"></div>
+
+  <section class="card">
+    <h2><span class="num">01</span> Identificação</h2>
+    <p class="lead">Um pedido por jogador. Se precisar de peças com tamanhos diferentes, envie o formulário uma vez para cada uma.</p>
+
+    <div class="field" id="f-nome">
+      <label for="nome">Nome completo <span class="req">*</span></label>
+      <input type="text" id="nome" name="nome" autocomplete="name" placeholder="Seu nome completo" maxlength="80">
+      <p class="hint">Só para identificar o pedido. O nome que vai estampado na camisa é perguntado mais abaixo.</p>
+      <p class="err">Informe seu nome completo.</p>
+    </div>
+
+    <div class="field" id="f-whatsapp">
+      <label for="whatsapp">WhatsApp com DDD <span class="req">*</span></label>
+      <input type="tel" id="whatsapp" name="whatsapp" inputmode="numeric" autocomplete="tel" placeholder="(19) 99795-6879" maxlength="16">
+      <p class="hint">Usado só para confirmar o pedido e o pagamento.</p>
+      <p class="err">Informe um número com DDD, 10 ou 11 dígitos.</p>
+    </div>
+
+    <fieldset id="f-tipo">
+      <span class="legend">O que você deseja pedir? <span class="req">*</span></span>
+      <div class="chips stack" data-chips="tipo"></div>
+      <p class="err">Escolha o tipo do pedido.</p>
+    </fieldset>
+
+    <div class="field" id="f-quantidade">
+      <label for="quantidade">Quantidade <span class="req">*</span></label>
+      <select id="quantidade" name="quantidade">
+        <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option>
+        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+        <option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+      </select>
+      <p class="hint">Quantas peças iguais, com o mesmo tamanho, modelo, nome e número. Para tamanhos diferentes, envie um pedido para cada.</p>
+    </div>
+  </section>
+
+  <!-- 02 - KIT -->
+  <section class="card hidden" id="sec-kit" data-type="kit">
+    <h2><span class="num">02</span> Kit completo</h2>
+    <p class="lead">Camisa + shorts Dry-Fit com proteção UV. P ao GG sai por R$&nbsp;95,00. Nos outros tamanhos o total é a soma das duas peças.</p>
+
+    <fieldset id="f-kitCamisaTamanho">
+      <span class="legend">Tamanho da camisa <span class="req">*</span></span>
+      <div class="chips" data-chips="kitCamisaTamanho"></div>
+      <p class="err">Escolha o tamanho da camisa.</p>
+    </fieldset>
+    <div class="field hidden" id="f-kitCamisaInfantil">
+      <label for="kitCamisaInfantil">Tamanho infantil da camisa <span class="req">*</span></label>
+      <select id="kitCamisaInfantil" name="kitCamisaInfantil" data-child="true"></select>
+      <p class="err">Escolha o tamanho infantil da camisa.</p>
+    </div>
+
+    <fieldset id="f-kitCamisaModelo">
+      <span class="legend">Modelo da camisa <span class="req">*</span></span>
+      <div class="chips" data-chips="kitCamisaModelo"></div>
+      <p class="err">Escolha o modelo da camisa.</p>
+    </fieldset>
+
+    <fieldset id="f-kitShortsTamanho">
+      <span class="legend">Tamanho do shorts <span class="req">*</span></span>
+      <div class="chips" data-chips="kitShortsTamanho"></div>
+      <p class="err">Escolha o tamanho do shorts.</p>
+    </fieldset>
+    <div class="field hidden" id="f-kitShortsInfantil">
+      <label for="kitShortsInfantil">Tamanho infantil do shorts <span class="req">*</span></label>
+      <select id="kitShortsInfantil" name="kitShortsInfantil" data-child="true"></select>
+      <p class="err">Escolha o tamanho infantil do shorts.</p>
+    </div>
+
+    <fieldset id="f-kitShortsModelo">
+      <span class="legend">Modelo do shorts <span class="req">*</span></span>
+      <div class="chips" data-chips="kitShortsModelo"></div>
+      <p class="err">Escolha o modelo do shorts.</p>
+    </fieldset>
+
+    <div class="two">
+      <div class="field" id="f-kitEstampa">
+        <label for="kitEstampa">Nome para estampar nas costas <span class="req">*</span></label>
+        <input type="text" id="kitEstampa" name="kitEstampa" class="upper" maxlength="14" placeholder="GÓES" autocomplete="off">
+        <p class="hint">Exatamente como deve aparecer, com acento se tiver.</p>
+        <p class="err">Informe o nome que vai estampado.</p>
+      </div>
+      <div class="field" id="f-kitNumero">
+        <label for="kitNumero">Número do uniforme <span class="req">*</span></label>
+        <input type="text" id="kitNumero" name="kitNumero" inputmode="numeric" maxlength="2" placeholder="23" autocomplete="off">
+        <p class="hint">Vai nas costas da camisa e no shorts.</p>
+        <p class="err">Informe um número de 0 a 99.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 - CAMISA AVULSA -->
+  <section class="card hidden" id="sec-camisa" data-type="camisa">
+    <h2><span class="num">02</span> Camisa avulsa</h2>
+    <p class="lead">Dry-Fit com proteção UV. P ao GG R$&nbsp;60,00 · G1 R$&nbsp;70,00 · G2 R$&nbsp;80,00 · G3 R$&nbsp;110,00 · Infantil R$&nbsp;50,00.</p>
+
+    <fieldset id="f-camisaModelo">
+      <span class="legend">Modelo da camisa <span class="req">*</span></span>
+      <div class="chips" data-chips="camisaModelo"></div>
+      <p class="err">Escolha o modelo da camisa.</p>
+    </fieldset>
+
+    <fieldset id="f-camisaTamanho">
+      <span class="legend">Tamanho da camisa <span class="req">*</span></span>
+      <div class="chips" data-chips="camisaTamanho"></div>
+      <p class="err">Escolha o tamanho da camisa.</p>
+    </fieldset>
+    <div class="field hidden" id="f-camisaInfantil">
+      <label for="camisaInfantil">Tamanho infantil <span class="req">*</span></label>
+      <select id="camisaInfantil" name="camisaInfantil" data-child="true"></select>
+      <p class="err">Escolha o tamanho infantil.</p>
+    </div>
+
+    <div class="two">
+      <div class="field" id="f-camisaEstampa">
+        <label for="camisaEstampa">Nome para estampar nas costas <span class="req">*</span></label>
+        <input type="text" id="camisaEstampa" name="camisaEstampa" class="upper" maxlength="14" placeholder="GÓES" autocomplete="off">
+        <p class="hint">Exatamente como deve aparecer, com acento se tiver.</p>
+        <p class="err">Informe o nome que vai estampado.</p>
+      </div>
+      <div class="field" id="f-camisaNumero">
+        <label for="camisaNumero">Número <span class="req">*</span></label>
+        <input type="text" id="camisaNumero" name="camisaNumero" inputmode="numeric" maxlength="2" placeholder="23" autocomplete="off">
+        <p class="hint">Vai estampado nas costas.</p>
+        <p class="err">Informe um número de 0 a 99.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 - SHORTS AVULSO -->
+  <section class="card hidden" id="sec-shorts" data-type="shorts">
+    <h2><span class="num">02</span> Shorts avulso</h2>
+    <p class="lead">Dry-Fit com proteção UV. P ao GG masculino R$&nbsp;35,00 · P ao GG feminino R$&nbsp;40,00 · G1, G2 e G3 R$&nbsp;50,00 · Infantil R$&nbsp;30,00.</p>
+
+    <fieldset id="f-shortsModelo">
+      <span class="legend">Modelo do shorts <span class="req">*</span></span>
+      <div class="chips" data-chips="shortsModelo"></div>
+      <p class="err">Escolha o modelo do shorts.</p>
+    </fieldset>
+
+    <fieldset id="f-shortsTamanho">
+      <span class="legend">Tamanho do shorts <span class="req">*</span></span>
+      <div class="chips" data-chips="shortsTamanho"></div>
+      <p class="err">Escolha o tamanho do shorts.</p>
+    </fieldset>
+    <div class="field hidden" id="f-shortsInfantil">
+      <label for="shortsInfantil">Tamanho infantil <span class="req">*</span></label>
+      <select id="shortsInfantil" name="shortsInfantil" data-child="true"></select>
+      <p class="err">Escolha o tamanho infantil.</p>
+    </div>
+
+    <div class="field" id="f-shortsNumero">
+      <label for="shortsNumero">Número <span class="req">*</span></label>
+      <input type="text" id="shortsNumero" name="shortsNumero" inputmode="numeric" maxlength="2" placeholder="23" autocomplete="off">
+      <p class="hint">Vai estampado no calção.</p>
+      <p class="err">Informe um número de 0 a 99.</p>
+    </div>
+  </section>
+
+  <!-- 05 - RESUMO -->
+  <section class="card">
+    <h2><span class="num">03</span> Resumo e envio</h2>
+    <p class="lead">Confira tudo antes de enviar. Depois do envio o pedido entra na lista da diretoria.</p>
+
+    <div class="pricebox">
+      <div class="totalrow">
+        <div>
+          <div class="small">Valor total do pedido</div>
+          <div id="priceDescription" class="small">Escolha o tipo de pedido para calcular.</div>
+        </div>
+        <div id="total" class="total" aria-live="polite">R$ 0,00</div>
+      </div>
+      <div id="breakdown" class="breakdown hidden"></div>
+    </div>
+
+    <div class="field" style="margin-top:18px">
+      <label for="observacoes">Observações (opcional)</label>
+      <textarea id="observacoes" name="observacoes" rows="3" maxlength="400" placeholder="Alguma observação sobre o pedido?"></textarea>
+    </div>
+
+    <button class="primary" type="submit" id="submitBtn">Enviar pedido</button>
+    <div id="feedback" aria-live="polite"></div>
+  </section>
+</form>
+
+<section class="card">
+  <h2><span class="num">04</span> Pagamento via PIX</h2>
+  <p class="lead">O pagamento é integral, pelo valor total do pedido.</p>
+  <div class="pix">
+    <div><strong>Chave PIX (e-mail):</strong> <span id="pixKeyText">resenhaguerreirosfc@gmail.com</span></div>
+    <div><strong>Favorecido:</strong> Diego Felipe Mateus</div>
+    <div><strong>Banco:</strong> BTG Pactual</div>
+    <div class="actions">
+      <button class="secondary" type="button" id="copyPix">Copiar chave PIX</button>
+      <button class="secondary" type="button" id="copySummaryTop" disabled>Copiar resumo do pedido</button>
+    </div>
+  </div>
+  <p class="notice" style="margin-top:14px">Depois de pagar, envie o comprovante pelo WhatsApp para o <strong>Diego(Góes)</strong>. Confira o nome do favorecido e o valor no aplicativo do banco antes de confirmar.</p>
+</section>
+
+<footer>💜🖤 GUERREIROS F.C. · NOVO UNIFORME 2026</footer>
+</main>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ *
+ * CONFIG - the only block that needs editing after deploy
+ * ------------------------------------------------------------------ */
+const CONFIG = {
+  // Apps Script Web App /exec URL. While empty, the page still works: it shows the
+  // summary and the WhatsApp button instead of recording the order.
+  // Script bound to the spreadsheet "Pedidos Uniforme Guerreiros FC 2026-2027".
+  endpoint: "https://script.google.com/macros/s/AKfycbzdvWFK5QsWZpdanAXpgMgGA-W8REr8YEk_vgu9JLSoWChkgcJrqfDo1t1im4iH87gB/exec",
+
+  // WhatsApp that receives the order as a fallback. Digits only, country code first.
+  // Diego (Góes), (19) 99679-1162. Leave empty to hide the button.
+  whatsapp: "5519996791162",
+
+  // Travels in the page source, so it is not a secret. It only stops bots that
+  // crawl for open Apps Script endpoints.
+  token: "guerreiros-2026",
+
+  pixKey: "resenhaguerreirosfc@gmail.com",
+  pixOwner: "Diego Felipe Mateus",
+  pixBank: "BTG Pactual"
+};
+
+/* ------------------------------------------------------------------ *
+ * Option data. Labels match the Google Form so the two can coexist.
+ * ------------------------------------------------------------------ */
+const SIZES = ["P", "M", "G", "GG", "G1", "G2", "G3", "Infantil"];
+const CHILD_SIZES = ["2", "4", "6", "8", "10", "12", "14", "16"];
+const SHIRT_MODELS = ["Normal", "Regata", "Feminino Baby look"];
+const SHORTS_MODELS = ["Masculino", "Feminino"];
+const ORDER_TYPES = [
+  { value: "kit", label: "Kit completo (camisa + shorts)" },
+  { value: "camisa", label: "Somente camisa" },
+  { value: "shorts", label: "Somente shorts" }
+];
+
+const form = document.getElementById("order");
+const $ = (id) => document.getElementById(id);
+
+/* ------------------------------------------------------------------ *
+ * Rendering
+ * ------------------------------------------------------------------ */
+function renderChips(name, values, opts) {
+  const box = document.querySelector('[data-chips="' + name + '"]');
+  if (!box) return;
+  box.innerHTML = values.map(function (v) {
+    const value = typeof v === "string" ? v : v.value;
+    const label = typeof v === "string" ? v : v.label;
+    return '<label class="chip"><input type="radio" name="' + name + '" value="' +
+           value + '"><span>' + label + "</span></label>";
+  }).join("");
+  if (opts && opts.wide) box.classList.add("wide");
+}
+
+function renderChildSelect(id) {
+  $(id).innerHTML = '<option value="">Selecione</option>' +
+    CHILD_SIZES.map(function (s) { return '<option value="' + s + '">' + s + "</option>"; }).join("");
+}
+
+renderChips("tipo", ORDER_TYPES);
+["kitCamisaTamanho", "kitShortsTamanho", "camisaTamanho", "shortsTamanho"]
+  .forEach(function (n) { renderChips(n, SIZES); });
+renderChips("kitCamisaModelo", SHIRT_MODELS);
+renderChips("camisaModelo", SHIRT_MODELS);
+renderChips("kitShortsModelo", SHORTS_MODELS);
+renderChips("shortsModelo", SHORTS_MODELS);
+["kitCamisaInfantil", "kitShortsInfantil", "camisaInfantil", "shortsInfantil"].forEach(renderChildSelect);
+
+/* ------------------------------------------------------------------ *
+ * Reading the form
+ * ------------------------------------------------------------------ */
+function radio(name) {
+  const el = form.elements[name];
+  return el ? (el.value || "") : "";
+}
+function text(id) {
+  return ($(id).value || "").trim();
+}
+// Resolves "Infantil" to the exact child size, e.g. "Infantil 10".
+function sizeOf(radioName, childId) {
+  const base = radio(radioName);
+  if (base !== "Infantil") return base;
+  const child = $(childId).value;
+  return child ? "Infantil " + child : "Infantil";
+}
+function digits(s) {
+  return (s || "").replace(/\D+/g, "");
+}
+
+/* ------------------------------------------------------------------ *
+ * Pricing - M33 Sports table, orders above 10 pieces
+ * ------------------------------------------------------------------ */
+const STANDARD = ["P", "M", "G", "GG"];
+
+function shirtPrice(size) {
+  if (STANDARD.indexOf(size) > -1) return 60;
+  if (size === "G1") return 70;
+  if (size === "G2") return 80;
+  if (size === "G3") return 110;
+  if (size === "Infantil") return 50;
+  return 0;
+}
+function shortsPrice(size, model) {
+  if (STANDARD.indexOf(size) > -1) return model === "Feminino" ? 40 : 35;
+  if (size === "G1" || size === "G2" || size === "G3") return 50;
+  if (size === "Infantil") return 30;
+  return 0;
+}
+// The kit is the sum of both pieces, with one exception: P to GG is a flat R$ 95,00.
+// That exception is what the kit table in the Google Form calls the promo price
+// (infantil 80, G1 120, G2 130, G3 160 are already the plain sum).
+function kitPrice(shirtSize, shortsSize, shortsModel) {
+  if (STANDARD.indexOf(shirtSize) > -1 && STANDARD.indexOf(shortsSize) > -1) return 95;
+  return shirtPrice(shirtSize) + shortsPrice(shortsSize, shortsModel);
+}
+
+const brl = (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+// Returns the unit price plus the lines shown under the total.
+function priceOf() {
+  const tipo = radio("tipo");
+  const qty = parseInt($("quantidade").value, 10) || 1;
+  const empty = { unit: 0, qty: qty, total: 0, desc: "Escolha o tipo de pedido para calcular.", lines: [] };
+
+  if (tipo === "kit") {
+    const shirtSize = radio("kitCamisaTamanho");
+    const shortsSize = radio("kitShortsTamanho");
+    const shortsModel = radio("kitShortsModelo");
+    if (!shirtSize || !shortsSize || !shortsModel || !radio("kitCamisaModelo")) {
+      return Object.assign({}, empty, { desc: "Escolha os tamanhos e os modelos do kit." });
+    }
+    const unit = kitPrice(shirtSize, shortsSize, shortsModel);
+    const flat = STANDARD.indexOf(shirtSize) > -1 && STANDARD.indexOf(shortsSize) > -1;
+    const lines = flat
+      ? [["Kit completo " + shirtSize + " (camisa + shorts)", 95]]
+      : [["Camisa " + sizeOf("kitCamisaTamanho", "kitCamisaInfantil"), shirtPrice(shirtSize)],
+         ["Shorts " + shortsModel.toLowerCase() + " " + sizeOf("kitShortsTamanho", "kitShortsInfantil"), shortsPrice(shortsSize, shortsModel)]];
+    return { unit: unit, qty: qty, total: unit * qty, desc: "Kit completo", lines: lines };
+  }
+
+  if (tipo === "camisa") {
+    const size = radio("camisaTamanho");
+    if (!size || !radio("camisaModelo")) {
+      return Object.assign({}, empty, { desc: "Escolha o modelo e o tamanho da camisa." });
+    }
+    const unit = shirtPrice(size);
+    return { unit: unit, qty: qty, total: unit * qty, desc: "Camisa avulsa",
+             lines: [["Camisa " + radio("camisaModelo").toLowerCase() + " " + sizeOf("camisaTamanho", "camisaInfantil"), unit]] };
+  }
+
+  if (tipo === "shorts") {
+    const size = radio("shortsTamanho");
+    const model = radio("shortsModelo");
+    if (!size || !model) {
+      return Object.assign({}, empty, { desc: "Escolha o modelo e o tamanho do shorts." });
+    }
+    const unit = shortsPrice(size, model);
+    return { unit: unit, qty: qty, total: unit * qty, desc: "Shorts avulso",
+             lines: [["Shorts " + model.toLowerCase() + " " + sizeOf("shortsTamanho", "shortsInfantil"), unit]] };
+  }
+
+  return empty;
+}
+
+function updateTotal() {
+  const p = priceOf();
+  $("total").textContent = brl(p.total);
+  $("priceDescription").textContent = p.qty > 1 && p.unit
+    ? p.desc + " · " + p.qty + " peças de " + brl(p.unit)
+    : p.desc;
+
+  const box = $("breakdown");
+  if (!p.lines.length) { box.classList.add("hidden"); box.innerHTML = ""; return; }
+  let html = p.lines.map(function (l) {
+    return "<div><span>" + l[0] + "</span><span>" + brl(l[1]) + "</span></div>";
+  }).join("");
+  if (p.qty > 1) {
+    html += "<div><span>Quantidade</span><span>x " + p.qty + "</span></div>";
+  }
+  box.innerHTML = html;
+  box.classList.remove("hidden");
+}
+
+/* ------------------------------------------------------------------ *
+ * Conditional sections
+ * ------------------------------------------------------------------ */
+const SECTIONS = { kit: $("sec-kit"), camisa: $("sec-camisa"), shorts: $("sec-shorts") };
+
+// Clears every input of a section. Without this, a size picked under "Kit" and then
+// abandoned keeps sitting in the form state and leaks into the order.
+function resetSection(section) {
+  section.querySelectorAll("input[type=radio]").forEach(function (el) { el.checked = false; });
+  section.querySelectorAll("input[type=text], select, textarea").forEach(function (el) { el.value = ""; });
+  section.querySelectorAll(".invalid").forEach(function (el) { el.classList.remove("invalid"); });
+}
+
+function syncSections() {
+  const tipo = radio("tipo");
+  Object.keys(SECTIONS).forEach(function (key) {
+    const visible = key === tipo;
+    if (!visible && !SECTIONS[key].classList.contains("hidden")) resetSection(SECTIONS[key]);
+    SECTIONS[key].classList.toggle("hidden", !visible);
+  });
+  syncChildFields();
+  updateTotal();
+}
+
+// The "tamanho infantil" dropdown only exists while the matching size is "Infantil".
+const CHILD_PAIRS = [
+  ["kitCamisaTamanho", "f-kitCamisaInfantil", "kitCamisaInfantil"],
+  ["kitShortsTamanho", "f-kitShortsInfantil", "kitShortsInfantil"],
+  ["camisaTamanho", "f-camisaInfantil", "camisaInfantil"],
+  ["shortsTamanho", "f-shortsInfantil", "shortsInfantil"]
+];
+
+function syncChildFields() {
+  CHILD_PAIRS.forEach(function (pair) {
+    const on = radio(pair[0]) === "Infantil";
+    $(pair[1]).classList.toggle("hidden", !on);
+    if (!on) { $(pair[2]).value = ""; $(pair[1]).classList.remove("invalid"); }
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * Validation
+ * ------------------------------------------------------------------ */
+function mark(fieldId, ok) {
+  $(fieldId).classList.toggle("invalid", !ok);
+  return ok;
+}
+
+// Only the fields of the visible section are checked, which is why switching the
+// order type cannot leave the submit button silently doing nothing.
+function validate() {
+  const bad = [];
+  const check = (id, ok) => { if (!mark(id, ok)) bad.push(id); };
+  const number = (v) => /^\d{1,2}$/.test(v);
+
+  check("f-nome", text("nome").length >= 3);
+  const phone = digits(text("whatsapp"));
+  check("f-whatsapp", phone.length === 10 || phone.length === 11);
+
+  const tipo = radio("tipo");
+  check("f-tipo", !!tipo);
+  if (!tipo) return bad;
+
+  if (tipo === "kit") {
+    check("f-kitCamisaTamanho", !!radio("kitCamisaTamanho"));
+    check("f-kitCamisaModelo", !!radio("kitCamisaModelo"));
+    check("f-kitShortsTamanho", !!radio("kitShortsTamanho"));
+    check("f-kitShortsModelo", !!radio("kitShortsModelo"));
+    if (radio("kitCamisaTamanho") === "Infantil") check("f-kitCamisaInfantil", !!$("kitCamisaInfantil").value);
+    if (radio("kitShortsTamanho") === "Infantil") check("f-kitShortsInfantil", !!$("kitShortsInfantil").value);
+    check("f-kitEstampa", text("kitEstampa").length >= 2);
+    check("f-kitNumero", number(text("kitNumero")));
+  } else if (tipo === "camisa") {
+    check("f-camisaModelo", !!radio("camisaModelo"));
+    check("f-camisaTamanho", !!radio("camisaTamanho"));
+    if (radio("camisaTamanho") === "Infantil") check("f-camisaInfantil", !!$("camisaInfantil").value);
+    check("f-camisaEstampa", text("camisaEstampa").length >= 2);
+    check("f-camisaNumero", number(text("camisaNumero")));
+  } else {
+    check("f-shortsModelo", !!radio("shortsModelo"));
+    check("f-shortsTamanho", !!radio("shortsTamanho"));
+    if (radio("shortsTamanho") === "Infantil") check("f-shortsInfantil", !!$("shortsInfantil").value);
+    check("f-shortsNumero", number(text("shortsNumero")));
+  }
+  return bad;
+}
+
+/* ------------------------------------------------------------------ *
+ * Order payload and summary
+ * ------------------------------------------------------------------ */
+function buildOrder(orderId) {
+  const tipo = radio("tipo");
+  const p = priceOf();
+  const o = {
+    order_id: orderId,
+    token: CONFIG.token,
+    website: $("website").value,            // honeypot, must stay empty
+    nome: text("nome"),
+    whatsapp: digits(text("whatsapp")),
+    tipo: tipo,
+    tipo_label: (ORDER_TYPES.filter((t) => t.value === tipo)[0] || {}).label || "",
+    quantidade: p.qty,
+    camisa_modelo: "", camisa_tamanho: "",
+    shorts_modelo: "", shorts_tamanho: "",
+    nome_estampa: "", numero: "",
+    valor_unitario: p.unit,
+    valor_total: p.total,
+    observacoes: text("observacoes"),
+    pagina: location.href
+  };
+
+  if (tipo === "kit") {
+    o.camisa_modelo = radio("kitCamisaModelo");
+    o.camisa_tamanho = sizeOf("kitCamisaTamanho", "kitCamisaInfantil");
+    o.shorts_modelo = radio("kitShortsModelo");
+    o.shorts_tamanho = sizeOf("kitShortsTamanho", "kitShortsInfantil");
+    o.nome_estampa = text("kitEstampa").toUpperCase();
+    o.numero = text("kitNumero");
+  } else if (tipo === "camisa") {
+    o.camisa_modelo = radio("camisaModelo");
+    o.camisa_tamanho = sizeOf("camisaTamanho", "camisaInfantil");
+    o.nome_estampa = text("camisaEstampa").toUpperCase();
+    o.numero = text("camisaNumero");
+  } else if (tipo === "shorts") {
+    o.shorts_modelo = radio("shortsModelo");
+    o.shorts_tamanho = sizeOf("shortsTamanho", "shortsInfantil");
+    o.numero = text("shortsNumero");
+  }
+  return o;
+}
+
+function summaryText(o) {
+  const lines = [
+    "PEDIDO NOVO UNIFORME - GUERREIROS F.C. 2026",
+    "Protocolo: " + o.order_id.slice(0, 8).toUpperCase(),
+    "Nome: " + o.nome,
+    "WhatsApp: " + o.whatsapp,
+    "Pedido: " + o.tipo_label,
+    "Quantidade: " + o.quantidade
+  ];
+  if (o.camisa_tamanho) lines.push("Camisa: " + o.camisa_modelo + " - " + o.camisa_tamanho);
+  if (o.shorts_tamanho) lines.push("Shorts: " + o.shorts_modelo + " - " + o.shorts_tamanho);
+  if (o.nome_estampa) lines.push("Nome estampado: " + o.nome_estampa);
+  if (o.numero) lines.push("Número: " + o.numero);
+  if (o.quantidade > 1) lines.push("Valor unitário: " + brl(o.valor_unitario));
+  lines.push("TOTAL: " + brl(o.valor_total));
+  if (o.observacoes) lines.push("Observações: " + o.observacoes);
+  lines.push("", "PIX: " + CONFIG.pixKey, "Favorecido: " + CONFIG.pixOwner + " - " + CONFIG.pixBank);
+  return lines.join("\n");
+}
+
+/* ------------------------------------------------------------------ *
+ * Submission
+ * ------------------------------------------------------------------ */
+// text/plain keeps this a CORS simple request, so the browser skips the preflight
+// that an Apps Script Web App cannot answer. If the response is still unreadable,
+// the order is re-sent opaque; order_id makes that retry idempotent server side.
+async function postOrder(order) {
+  const body = JSON.stringify(order);
+  let payload;
+  try {
+    const res = await fetch(CONFIG.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: body,
+      redirect: "follow"
+    });
+    payload = await res.json();
+  } catch (err) {
+    try {
+      await fetch(CONFIG.endpoint, {
+        method: "POST", mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: body
+      });
+      return { state: "sent-unconfirmed" };
+    } catch (err2) {
+      return { state: "failed", error: err2.message };
+    }
+  }
+  if (payload && payload.ok) return { state: "confirmed", row: payload.row };
+  return { state: "rejected", error: (payload && payload.error) || "resposta inesperada do servidor" };
+}
+
+function whatsappLink(o) {
+  if (!CONFIG.whatsapp) return "";
+  return "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(summaryText(o));
+}
+
+function renderFeedback(state, o, detail) {
+  const summary = summaryText(o);
+  const wa = whatsappLink(o);
+  const banners = {
+    confirmed: ['ok', 'Pedido registrado',
+      'Protocolo <strong style="display:inline">' + o.order_id.slice(0, 8).toUpperCase() +
+      "</strong>. O pedido entrou na planilha da diretoria. Agora faça o PIX de <strong style=\"display:inline\">" +
+      brl(o.valor_total) + "</strong> e envie o comprovante."],
+    "sent-unconfirmed": ['warn', 'Pedido enviado',
+      "O envio saiu, mas o navegador não conseguiu ler a confirmação do servidor. Para garantir, mande o resumo abaixo pelo WhatsApp."],
+    rejected: ['bad', 'O servidor recusou o pedido',
+      (detail || "") + "<br>Mande o resumo abaixo pelo WhatsApp para não perder o pedido."],
+    failed: ['bad', 'Não foi possível enviar',
+      "Verifique sua conexão e tente de novo. Se continuar, mande o resumo abaixo pelo WhatsApp."],
+    offline: ['warn', 'Resumo do pedido pronto',
+      "O envio automático ainda não está configurado nesta página. Copie o resumo abaixo ou mande pelo WhatsApp."]
+  };
+  const b = banners[state] || banners.failed;
+
+  $("feedback").innerHTML =
+    '<div class="banner ' + b[0] + '"><strong>' + b[1] + "</strong>" + b[2] + "</div>" +
+    '<pre class="summary">' + summary.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])) + "</pre>" +
+    '<div class="actions"><button type="button" class="secondary" id="copySummary">Copiar resumo</button>' +
+    (wa ? '<a class="secondary" style="text-align:center;text-decoration:none;padding:14px 16px;border-radius:12px;font-weight:750" href="' + wa + '" target="_blank" rel="noopener">Enviar no WhatsApp</a>' : "") +
+    "</div>" +
+    // Only offered when the order actually left. On a failure the person still needs
+    // what is on screen, and wiping the form would throw away everything they typed.
+    (SENT_STATES.indexOf(state) > -1
+      ? '<button type="button" class="primary" id="novoPedido" style="margin-top:12px">➕ Fazer outro pedido</button>' +
+        '<p class="hint" style="text-align:center">Para pedir outra peça, ou pedir para outra pessoa.</p>'
+      : "");
+
+  $("copySummary").addEventListener("click", () => copyText(summary, "Resumo copiado."));
+  if ($("novoPedido")) $("novoPedido").addEventListener("click", startNewOrder);
+  $("copySummaryTop").disabled = false;
+  $("copySummaryTop").dataset.summary = summary;
+  $("feedback").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+const SENT_STATES = ["confirmed", "sent-unconfirmed", "offline"];
+
+// Clears the order but keeps name and WhatsApp: the second order usually comes from
+// the same person, for a kid or for a second shirt. Both fields stay editable.
+function startNewOrder() {
+  const name = $("nome").value;
+  const phone = $("whatsapp").value;
+  form.reset();
+  $("nome").value = name;
+  $("whatsapp").value = phone;
+  $("feedback").innerHTML = "";
+  form.querySelectorAll(".invalid").forEach(function (el) { el.classList.remove("invalid"); });
+  syncSections();
+  $("f-tipo").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+form.addEventListener("submit", async function (event) {
+  event.preventDefault();
+  const bad = validate();
+  if (bad.length) {
+    $(bad[0]).scrollIntoView({ behavior: "smooth", block: "center" });
+    const focusable = $(bad[0]).querySelector("input, select, textarea");
+    if (focusable) focusable.focus({ preventScroll: true });
+    return;
+  }
+
+  const orderId = (crypto.randomUUID ? crypto.randomUUID()
+    : Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
+  const order = buildOrder(orderId);
+
+  if (!CONFIG.endpoint) {
+    renderFeedback("offline", order);
+    return;
+  }
+
+  const btn = $("submitBtn");
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+  const result = await postOrder(order);
+  btn.disabled = false;
+  btn.textContent = original;
+  renderFeedback(result.state, order, result.error);
+});
+
+/* ------------------------------------------------------------------ *
+ * Input behaviour
+ * ------------------------------------------------------------------ */
+form.addEventListener("change", function (event) {
+  if (event.target.name === "tipo") { syncSections(); return; }
+  if (CHILD_PAIRS.some((p) => p[0] === event.target.name)) syncChildFields();
+  updateTotal();
+  // Clear the error as soon as the field is answered.
+  const field = event.target.closest(".field, fieldset");
+  if (field && field.classList.contains("invalid")) field.classList.remove("invalid");
+});
+form.addEventListener("input", function (event) {
+  const field = event.target.closest(".field, fieldset");
+  if (field && field.classList.contains("invalid")) field.classList.remove("invalid");
+});
+
+// Keeps the number fields numeric without blocking the mobile keyboard.
+["kitNumero", "camisaNumero", "shortsNumero"].forEach(function (id) {
+  $(id).addEventListener("input", function () { this.value = digits(this.value).slice(0, 2); });
+});
+
+// Brazilian phone mask: (19) 99795-6879
+$("whatsapp").addEventListener("input", function () {
+  const d = digits(this.value).slice(0, 11);
+  let out = d;
+  if (d.length > 2) out = "(" + d.slice(0, 2) + ") " + d.slice(2);
+  if (d.length > 6) {
+    const split = d.length > 10 ? 7 : 6;
+    out = "(" + d.slice(0, 2) + ") " + d.slice(2, split) + "-" + d.slice(split);
+  }
+  this.value = out;
+});
+
+async function copyText(value, message) {
+  try {
+    await navigator.clipboard.writeText(value);
+    alert(message);
+  } catch (err) {
+    window.prompt("Copie o texto abaixo:", value);
+  }
+}
+$("copyPix").addEventListener("click", () => copyText(CONFIG.pixKey, "Chave PIX copiada."));
+$("copySummaryTop").addEventListener("click", function () {
+  if (this.dataset.summary) copyText(this.dataset.summary, "Resumo copiado.");
+});
+
+$("pixKeyText").textContent = CONFIG.pixKey;
+syncSections();
+</script>
+</body>
+</html>

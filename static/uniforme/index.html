@@ -1172,7 +1172,9 @@ form.addEventListener("change", function (event) {
     return;
   }
   if (isSizeRadio(name)) syncChildFields();
-  if (/camisaModelo$/.test(name || "")) syncSleeveFields();
+  // Insensível a maiúscula de propósito: o campo do kit se chama kitCamisaModelo,
+  // com C maiúsculo, e o da camisa avulsa camisaModelo. Os dois têm que disparar.
+  if (/camisamodelo$/i.test(name || "")) syncSleeveFields();
   updateTotal();
   // Clear the error as soon as the field is answered.
   const field = event.target.closest(".field, fieldset");

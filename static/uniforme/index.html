@@ -306,13 +306,13 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:4px 0 26px}
       <div class="field" id="f-kitEstampa">
         <label for="kitEstampa">Nome para estampar nas costas <span class="req">*</span></label>
         <input type="text" id="kitEstampa" name="kitEstampa" class="upper" maxlength="14" placeholder="GÓES" autocomplete="off">
-        <p class="hint">Exatamente como deve aparecer, com acento se tiver.</p>
+        <p class="hint">Como deve aparecer, com acento.</p>
         <p class="err">Informe o nome que vai estampado.</p>
       </div>
       <div class="field" id="f-kitNumero">
         <label for="kitNumero">Número do uniforme <span class="req">*</span></label>
         <input type="text" id="kitNumero" name="kitNumero" inputmode="numeric" maxlength="2" placeholder="23" autocomplete="off">
-        <p class="hint">Vai nas costas da camisa e no shorts.</p>
+        <p class="hint">Nas costas e no shorts.</p>
         <p class="err">Informe um número de 0 a 99.</p>
       </div>
     </div>
@@ -351,13 +351,13 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:4px 0 26px}
       <div class="field" id="f-camisaEstampa">
         <label for="camisaEstampa">Nome para estampar nas costas <span class="req">*</span></label>
         <input type="text" id="camisaEstampa" name="camisaEstampa" class="upper" maxlength="14" placeholder="GÓES" autocomplete="off">
-        <p class="hint">Exatamente como deve aparecer, com acento se tiver.</p>
+        <p class="hint">Como deve aparecer, com acento.</p>
         <p class="err">Informe o nome que vai estampado.</p>
       </div>
       <div class="field" id="f-camisaNumero">
         <label for="camisaNumero">Número <span class="req">*</span></label>
         <input type="text" id="camisaNumero" name="camisaNumero" inputmode="numeric" maxlength="2" placeholder="23" autocomplete="off">
-        <p class="hint">Vai estampado nas costas.</p>
+        <p class="hint">Nas costas da camisa.</p>
         <p class="err">Informe um número de 0 a 99.</p>
       </div>
     </div>
@@ -388,7 +388,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:4px 0 26px}
     <div class="field" id="f-shortsNumero">
       <label for="shortsNumero">Número <span class="req">*</span></label>
       <input type="text" id="shortsNumero" name="shortsNumero" inputmode="numeric" maxlength="2" placeholder="23" autocomplete="off">
-      <p class="hint">Vai estampado no calção.</p>
+      <p class="hint">Estampado no calção.</p>
       <p class="err">Informe um número de 0 a 99.</p>
     </div>
   </section>
@@ -810,7 +810,7 @@ function variantBlock(tipo, index) {
   body += '<div class="two">';
   if (ids.estampa) {
     body += textField(ids.estampa, "Nome para estampar", "GÓES",
-      "Como deve aparecer nas costas.", 'class="upper" maxlength="14"');
+      "Com acento, se tiver.", 'class="upper" maxlength="14"');
   }
   body += textField(ids.numero, "Número", "23", "De 0 a 99.", 'inputmode="numeric" maxlength="2"');
   body += "</div>";

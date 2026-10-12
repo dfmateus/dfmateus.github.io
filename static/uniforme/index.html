@@ -1065,7 +1065,9 @@ async function postOrder(order) {
       return { state: "failed", error: err2.message };
     }
   }
-  if (payload && payload.ok) return { state: "confirmed", row: payload.row };
+  if (payload && payload.ok) {
+    return { state: "confirmed", row: payload.row, substituidas: payload.substituidas || 0 };
+  }
   // The server found an identical order already recorded. It is a warning, not a
   // refusal: the page asks and re-sends with force if the person confirms.
   if (payload && payload.duplicado) return { state: "duplicate", info: payload };
@@ -1088,11 +1090,15 @@ function renderFeedback(state, o, result) {
       (dup.quando || "outro momento") + "</strong>, protocolo <strong style=\"display:inline\">" +
       (dup.protocolo || "") + "</strong>." +
       (dup.pagamento === "Pago" ? " Esse já consta como pago." : "") +
-      "<br>Se você clicou duas vezes sem querer, pode ignorar: o pedido anterior está valendo. " +
-      "Se quer mesmo pedir outra vez a mesma peça, confirme abaixo."],
-    confirmed: ['ok', 'Pedido registrado',
+      "<br>Se foi clique duplo sem querer, pode ignorar: o anterior está valendo. " +
+      "Se não foi, escolha abaixo o que você quer."],
+    confirmed: ['ok', (result && result.substituidas ? 'Pedido corrigido' : 'Pedido registrado'),
       'Protocolo <strong style="display:inline">' + o.order_id.slice(0, 8).toUpperCase() +
-      "</strong>. O pedido entrou na planilha da diretoria. Agora faça o PIX de <strong style=\"display:inline\">" +
+      "</strong>. " +
+      (result && result.substituidas
+        ? 'O pedido anterior foi cancelado e vale só este. '
+        : 'O pedido entrou na planilha da diretoria. ') +
+      "Agora faça o PIX de <strong style=\"display:inline\">" +
       brl(o.valor_total) + "</strong> e envie o comprovante."],
     "sent-unconfirmed": ['warn', 'Pedido enviado',
       "O envio saiu, mas o navegador não conseguiu ler a confirmação do servidor. Para garantir, mande o resumo abaixo pelo WhatsApp."],
@@ -1117,9 +1123,14 @@ function renderFeedback(state, o, result) {
       ? '<button type="button" class="primary" id="novoPedido" style="margin-top:12px">➕ Fazer outro pedido</button>' +
         '<p class="hint" style="text-align:center">Para pedir outra peça, ou pedir para outra pessoa.</p>'
       : "") +
+    // Dois caminhos porque são intenções diferentes, e só quem está pedindo sabe
+    // qual é: mais uma peça igual, ou correção do que já foi enviado.
     (state === "duplicate"
-      ? '<button type="button" class="primary" id="forcarEnvio" style="margin-top:12px">Sim, quero pedir de novo</button>' +
-        '<p class="hint" style="text-align:center">Vai gravar um segundo pedido igual ao anterior.</p>'
+      ? '<button type="button" class="primary" id="forcarEnvio" style="margin-top:12px">Quero OUTRA peça igual</button>' +
+        '<p class="hint" style="text-align:center;margin-bottom:12px">Fica com as duas. A confecção produz ' +
+        'duas peças e você paga as duas.</p>' +
+        '<button type="button" class="secondary" id="substituirPedido">Era correção, trocar o anterior</button>' +
+        '<p class="hint" style="text-align:center">O pedido anterior é cancelado e vale só este.</p>'
       : "");
 
   $("copySummary").addEventListener("click", () => copyText(summary, "Resumo copiado."));
@@ -1127,6 +1138,11 @@ function renderFeedback(state, o, result) {
   if ($("forcarEnvio")) {
     $("forcarEnvio").addEventListener("click", function () {
       submitOrder(Object.assign({}, o, { force: true }));
+    });
+  }
+  if ($("substituirPedido")) {
+    $("substituirPedido").addEventListener("click", function () {
+      submitOrder(Object.assign({}, o, { substituir: true }));
     });
   }
   $("copySummaryTop").disabled = false;

@@ -647,6 +647,22 @@ function needsSleeve(model) {
   return !!model && model !== "Regata";
 }
 
+// Os campos que ainda faltam nesta peça, com o nome que a pessoa lê na tela.
+// Espelha itemComplete: se um entra aqui, o outro tem que concordar.
+function missingOf(item) {
+  const falta = [];
+  if (item.tipo === "kit" || item.tipo === "camisa") {
+    if (!item.camisaModelo) falta.push("modelo da camisa");
+    if (needsSleeve(item.camisaModelo) && !item.manga) falta.push("manga");
+    if (!item.camisaBase) falta.push("tamanho da camisa");
+  }
+  if (item.tipo === "kit" || item.tipo === "shorts") {
+    if (!item.shortsModelo) falta.push("modelo do shorts");
+    if (!item.shortsBase) falta.push("tamanho do shorts");
+  }
+  return falta;
+}
+
 function itemComplete(item) {
   var sleeveOk = !needsSleeve(item.camisaModelo) || !!item.manga;
   if (item.tipo === "kit") {
@@ -682,12 +698,17 @@ function priceOf() {
   const items = readItems();
   if (!tipo) return { total: 0, desc: "Escolha o tipo de pedido para calcular.", lines: [], items: [] };
 
-  const pending = items.filter(function (item) { return !itemComplete(item); }).length;
-  if (pending) {
-    return { total: 0, items: items, lines: [],
-             desc: pending === items.length
-               ? "Escolha os tamanhos e os modelos."
-               : "Faltam " + pending + " de " + items.length + " peças para calcular." };
+  // Dizer o que falta, e não só que falta. Com o formulário crescido, "escolha os
+  // tamanhos e os modelos" deixa a pessoa procurando qual campo ficou para trás.
+  const pending = items
+    .map(function (item, index) { return { index: index, falta: missingOf(item) }; })
+    .filter(function (p) { return p.falta.length; });
+
+  if (pending.length) {
+    const first = pending[0];
+    const onde = isVaried() ? "Peça " + (first.index + 1) + ", falta escolher: " : "Falta escolher: ";
+    const resto = pending.length > 1 ? " · e mais " + (pending.length - 1) + " peça(s)" : "";
+    return { total: 0, items: items, lines: [], desc: onde + first.falta.join(", ") + resto };
   }
 
   let total = 0;

@@ -970,6 +970,9 @@ async function postOrder(order) {
     }
   }
   if (payload && payload.ok) return { state: "confirmed", row: payload.row };
+  // The server found an identical order already recorded. It is a warning, not a
+  // refusal: the page asks and re-sends with force if the person confirms.
+  if (payload && payload.duplicado) return { state: "duplicate", info: payload };
   return { state: "rejected", error: (payload && payload.error) || "resposta inesperada do servidor" };
 }
 
@@ -978,10 +981,19 @@ function whatsappLink(o) {
   return "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(summaryText(o));
 }
 
-function renderFeedback(state, o, detail) {
+function renderFeedback(state, o, result) {
   const summary = summaryText(o);
   const wa = whatsappLink(o);
+  const detail = (result && result.error) || "";
+  const dup = (result && result.info) || {};
   const banners = {
+    duplicate: ['warn', 'Esse pedido já foi enviado',
+      "Encontramos um pedido igual a este, feito em <strong style=\"display:inline\">" +
+      (dup.quando || "outro momento") + "</strong>, protocolo <strong style=\"display:inline\">" +
+      (dup.protocolo || "") + "</strong>." +
+      (dup.pagamento === "Pago" ? " Esse já consta como pago." : "") +
+      "<br>Se você clicou duas vezes sem querer, pode ignorar: o pedido anterior está valendo. " +
+      "Se quer mesmo pedir outra vez a mesma peça, confirme abaixo."],
     confirmed: ['ok', 'Pedido registrado',
       'Protocolo <strong style="display:inline">' + o.order_id.slice(0, 8).toUpperCase() +
       "</strong>. O pedido entrou na planilha da diretoria. Agora faça o PIX de <strong style=\"display:inline\">" +
@@ -1008,10 +1020,19 @@ function renderFeedback(state, o, detail) {
     (SENT_STATES.indexOf(state) > -1
       ? '<button type="button" class="primary" id="novoPedido" style="margin-top:12px">➕ Fazer outro pedido</button>' +
         '<p class="hint" style="text-align:center">Para pedir outra peça, ou pedir para outra pessoa.</p>'
+      : "") +
+    (state === "duplicate"
+      ? '<button type="button" class="primary" id="forcarEnvio" style="margin-top:12px">Sim, quero pedir de novo</button>' +
+        '<p class="hint" style="text-align:center">Vai gravar um segundo pedido igual ao anterior.</p>'
       : "");
 
   $("copySummary").addEventListener("click", () => copyText(summary, "Resumo copiado."));
   if ($("novoPedido")) $("novoPedido").addEventListener("click", startNewOrder);
+  if ($("forcarEnvio")) {
+    $("forcarEnvio").addEventListener("click", function () {
+      submitOrder(Object.assign({}, o, { force: true }));
+    });
+  }
   $("copySummaryTop").disabled = false;
   $("copySummaryTop").dataset.summary = summary;
   $("feedback").scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1049,10 +1070,15 @@ form.addEventListener("submit", async function (event) {
   const order = buildOrder(orderId);
 
   if (!CONFIG.endpoint) {
-    renderFeedback("offline", order);
+    renderFeedback("offline", order, {});
     return;
   }
+  await submitOrder(order);
+});
 
+// Shared by the submit button and by the "send it anyway" confirmation, which
+// re-sends the same order with force so the server skips the duplicate check.
+async function submitOrder(order) {
   const btn = $("submitBtn");
   const original = btn.textContent;
   btn.disabled = true;
@@ -1060,8 +1086,8 @@ form.addEventListener("submit", async function (event) {
   const result = await postOrder(order);
   btn.disabled = false;
   btn.textContent = original;
-  renderFeedback(result.state, order, result.error);
-});
+  renderFeedback(result.state, order, result);
+}
 
 /* ------------------------------------------------------------------ *
  * Input behaviour

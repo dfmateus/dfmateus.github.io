@@ -90,6 +90,13 @@ fieldset:first-of-type{margin-top:0}
 .chips.stack .chip,.chips.stack .chip span{width:100%}
 .chips.stack .chip span{justify-content:flex-start}
 
+/* One card per piece when the order has several different ones */
+.variant{border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 14px;background:#fcfbfe}
+.variant:last-child{margin-bottom:0}
+.variantTitle{margin:0 0 14px;font-size:.84rem;font-weight:800;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--purple-deep);background:var(--purple-soft);
+  display:inline-block;padding:5px 11px;border-radius:999px}
+
 .err{display:none;color:var(--err);font-size:.84rem;font-weight:620;margin-top:7px}
 .invalid .err{display:block}
 .invalid .chip span,.invalid input[type=text],.invalid input[type=tel],.invalid select{border-color:var(--err)}
@@ -228,8 +235,15 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:4px 0 26px}
         <option value="4">4</option><option value="5">5</option><option value="6">6</option>
         <option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
       </select>
-      <p class="hint">Quantas peças iguais, com o mesmo tamanho, modelo, nome e número. Para tamanhos diferentes, envie um pedido para cada.</p>
+      <p class="hint">Quantas peças você quer neste pedido.</p>
     </div>
+
+    <fieldset id="f-modo" class="hidden">
+      <span class="legend">As peças são todas iguais? <span class="req">*</span></span>
+      <div class="chips stack" data-chips="modo"></div>
+      <p class="hint">Iguais quer dizer mesmo tamanho, modelo, nome e número em todas.</p>
+      <p class="err">Escolha se as peças são iguais ou diferentes.</p>
+    </fieldset>
   </section>
 
   <!-- 02 - KIT -->
@@ -353,6 +367,13 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:4px 0 26px}
       <p class="hint">Vai estampado no calção.</p>
       <p class="err">Informe um número de 0 a 99.</p>
     </div>
+  </section>
+
+  <!-- 02 - PEÇAS DIFERENTES: um bloco por peça, montado pelo JS -->
+  <section class="card hidden" id="sec-variados">
+    <h2><span class="num">02</span> <span id="variadosTitulo">Peças do pedido</span></h2>
+    <p class="lead">Preencha cada peça separadamente. Cada uma pode ter tamanho, modelo, nome e número diferentes.</p>
+    <div id="variantBlocks"></div>
   </section>
 
   <!-- 05 - RESUMO -->
@@ -479,13 +500,6 @@ function radio(name) {
 function text(id) {
   return ($(id).value || "").trim();
 }
-// Resolves "Infantil" to the exact child size, e.g. "Infantil 10".
-function sizeOf(radioName, childId) {
-  const base = radio(radioName);
-  if (base !== "Infantil") return base;
-  const child = $(childId).value;
-  return child ? "Infantil " + child : "Infantil";
-}
 function digits(s) {
   return (s || "").replace(/\D+/g, "");
 }
@@ -519,68 +533,140 @@ function kitPrice(shirtSize, shortsSize, shortsModel) {
 
 const brl = (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-// Returns the unit price plus the lines shown under the total.
+/* ------------------------------------------------------------------ *
+ * Items
+ *
+ * An order is a list of items. "Todas iguais" is one item with qtd = N,
+ * "cada uma diferente" is N items with qtd = 1. Everything downstream, price,
+ * validation, summary and payload, works on that list and never needs to know
+ * which of the two the person picked.
+ * ------------------------------------------------------------------ */
+const FIELDS = {
+  kit: ["camisaTamanho", "camisaInfantil", "camisaModelo",
+        "shortsTamanho", "shortsInfantil", "shortsModelo", "estampa", "numero"],
+  camisa: ["camisaModelo", "camisaTamanho", "camisaInfantil", "estampa", "numero"],
+  shorts: ["shortsModelo", "shortsTamanho", "shortsInfantil", "numero"]
+};
+
+// The three original sections keep the ids they were written with, so the map from
+// a canonical field name to an element id is spelled out instead of derived.
+const STATIC_IDS = {
+  kit: { camisaTamanho: "kitCamisaTamanho", camisaInfantil: "kitCamisaInfantil",
+         camisaModelo: "kitCamisaModelo", shortsTamanho: "kitShortsTamanho",
+         shortsInfantil: "kitShortsInfantil", shortsModelo: "kitShortsModelo",
+         estampa: "kitEstampa", numero: "kitNumero" },
+  camisa: { camisaModelo: "camisaModelo", camisaTamanho: "camisaTamanho",
+            camisaInfantil: "camisaInfantil", estampa: "camisaEstampa", numero: "camisaNumero" },
+  shorts: { shortsModelo: "shortsModelo", shortsTamanho: "shortsTamanho",
+            shortsInfantil: "shortsInfantil", numero: "shortsNumero" }
+};
+
+// index null means the static block; 1..N are the per-item blocks.
+function idsFor(tipo, index) {
+  if (index === null) return STATIC_IDS[tipo];
+  const map = {};
+  FIELDS[tipo].forEach(function (field) { map[field] = "v" + index + "_" + field; });
+  return map;
+}
+
+function sizeLabel(base, child) {
+  if (base !== "Infantil") return base;
+  return child ? "Infantil " + child : "Infantil";
+}
+
+function readItem(tipo, ids, qtd) {
+  const get = (field) => (ids[field] && $(ids[field]) ? $(ids[field]).value : "");
+  return {
+    tipo: tipo,
+    qtd: qtd,
+    camisaModelo: ids.camisaModelo ? radio(ids.camisaModelo) : "",
+    camisaBase: ids.camisaTamanho ? radio(ids.camisaTamanho) : "",
+    camisaChild: ids.camisaInfantil ? get("camisaInfantil") : "",
+    shortsModelo: ids.shortsModelo ? radio(ids.shortsModelo) : "",
+    shortsBase: ids.shortsTamanho ? radio(ids.shortsTamanho) : "",
+    shortsChild: ids.shortsInfantil ? get("shortsInfantil") : "",
+    estampa: ids.estampa ? (get("estampa") || "").trim() : "",
+    numero: ids.numero ? (get("numero") || "").trim() : "",
+    ids: ids
+  };
+}
+
+// One entry per block on screen. Returns [] while the type is not chosen.
+function readItems() {
+  const tipo = radio("tipo");
+  if (!tipo) return [];
+  const qty = parseInt($("quantidade").value, 10) || 1;
+  if (!isVaried()) return [readItem(tipo, STATIC_IDS[tipo], qty)];
+  const items = [];
+  for (let i = 1; i <= qty; i++) items.push(readItem(tipo, idsFor(tipo, i), 1));
+  return items;
+}
+
+function itemUnitPrice(item) {
+  if (item.tipo === "kit") return kitPrice(item.camisaBase, item.shortsBase, item.shortsModelo);
+  if (item.tipo === "camisa") return shirtPrice(item.camisaBase);
+  if (item.tipo === "shorts") return shortsPrice(item.shortsBase, item.shortsModelo);
+  return 0;
+}
+
+function itemComplete(item) {
+  if (item.tipo === "kit") {
+    return !!(item.camisaBase && item.camisaModelo && item.shortsBase && item.shortsModelo);
+  }
+  if (item.tipo === "camisa") return !!(item.camisaBase && item.camisaModelo);
+  return !!(item.shortsBase && item.shortsModelo);
+}
+
+function itemLabel(item) {
+  if (item.tipo === "kit") {
+    return "Kit " + sizeLabel(item.camisaBase, item.camisaChild) +
+      (item.camisaBase === item.shortsBase && item.camisaChild === item.shortsChild
+        ? "" : " + shorts " + sizeLabel(item.shortsBase, item.shortsChild));
+  }
+  if (item.tipo === "camisa") {
+    return "Camisa " + item.camisaModelo.toLowerCase() + " " + sizeLabel(item.camisaBase, item.camisaChild);
+  }
+  return "Shorts " + item.shortsModelo.toLowerCase() + " " + sizeLabel(item.shortsBase, item.shortsChild);
+}
+
+const TYPE_LABELS = { kit: "Kit completo", camisa: "Camisa avulsa", shorts: "Shorts avulso" };
+
 function priceOf() {
   const tipo = radio("tipo");
-  const qty = parseInt($("quantidade").value, 10) || 1;
-  const empty = { unit: 0, qty: qty, total: 0, desc: "Escolha o tipo de pedido para calcular.", lines: [] };
+  const items = readItems();
+  if (!tipo) return { total: 0, desc: "Escolha o tipo de pedido para calcular.", lines: [], items: [] };
 
-  if (tipo === "kit") {
-    const shirtSize = radio("kitCamisaTamanho");
-    const shortsSize = radio("kitShortsTamanho");
-    const shortsModel = radio("kitShortsModelo");
-    if (!shirtSize || !shortsSize || !shortsModel || !radio("kitCamisaModelo")) {
-      return Object.assign({}, empty, { desc: "Escolha os tamanhos e os modelos do kit." });
-    }
-    const unit = kitPrice(shirtSize, shortsSize, shortsModel);
-    const flat = STANDARD.indexOf(shirtSize) > -1 && STANDARD.indexOf(shortsSize) > -1;
-    const lines = flat
-      ? [["Kit completo " + shirtSize + " (camisa + shorts)", 95]]
-      : [["Camisa " + sizeOf("kitCamisaTamanho", "kitCamisaInfantil"), shirtPrice(shirtSize)],
-         ["Shorts " + shortsModel.toLowerCase() + " " + sizeOf("kitShortsTamanho", "kitShortsInfantil"), shortsPrice(shortsSize, shortsModel)]];
-    return { unit: unit, qty: qty, total: unit * qty, desc: "Kit completo", lines: lines };
+  const pending = items.filter(function (item) { return !itemComplete(item); }).length;
+  if (pending) {
+    return { total: 0, items: items, lines: [],
+             desc: pending === items.length
+               ? "Escolha os tamanhos e os modelos."
+               : "Faltam " + pending + " de " + items.length + " peças para calcular." };
   }
 
-  if (tipo === "camisa") {
-    const size = radio("camisaTamanho");
-    if (!size || !radio("camisaModelo")) {
-      return Object.assign({}, empty, { desc: "Escolha o modelo e o tamanho da camisa." });
-    }
-    const unit = shirtPrice(size);
-    return { unit: unit, qty: qty, total: unit * qty, desc: "Camisa avulsa",
-             lines: [["Camisa " + radio("camisaModelo").toLowerCase() + " " + sizeOf("camisaTamanho", "camisaInfantil"), unit]] };
-  }
+  let total = 0;
+  const lines = items.map(function (item, index) {
+    const unit = itemUnitPrice(item);
+    total += unit * item.qtd;
+    const prefix = isVaried() ? (index + 1) + ". " : "";
+    const suffix = item.qtd > 1 ? "  (x " + item.qtd + ")" : "";
+    return [prefix + itemLabel(item) + suffix, unit * item.qtd];
+  });
 
-  if (tipo === "shorts") {
-    const size = radio("shortsTamanho");
-    const model = radio("shortsModelo");
-    if (!size || !model) {
-      return Object.assign({}, empty, { desc: "Escolha o modelo e o tamanho do shorts." });
-    }
-    const unit = shortsPrice(size, model);
-    return { unit: unit, qty: qty, total: unit * qty, desc: "Shorts avulso",
-             lines: [["Shorts " + model.toLowerCase() + " " + sizeOf("shortsTamanho", "shortsInfantil"), unit]] };
-  }
-
-  return empty;
+  return { total: total, items: items, lines: lines,
+           desc: TYPE_LABELS[tipo] + (items.length > 1 ? " · " + items.length + " peças diferentes" : "") };
 }
 
 function updateTotal() {
   const p = priceOf();
   $("total").textContent = brl(p.total);
-  $("priceDescription").textContent = p.qty > 1 && p.unit
-    ? p.desc + " · " + p.qty + " peças de " + brl(p.unit)
-    : p.desc;
+  $("priceDescription").textContent = p.desc;
 
   const box = $("breakdown");
   if (!p.lines.length) { box.classList.add("hidden"); box.innerHTML = ""; return; }
-  let html = p.lines.map(function (l) {
-    return "<div><span>" + l[0] + "</span><span>" + brl(l[1]) + "</span></div>";
+  box.innerHTML = p.lines.map(function (line) {
+    return "<div><span>" + line[0] + "</span><span>" + brl(line[1]) + "</span></div>";
   }).join("");
-  if (p.qty > 1) {
-    html += "<div><span>Quantidade</span><span>x " + p.qty + "</span></div>";
-  }
-  box.innerHTML = html;
   box.classList.remove("hidden");
 }
 
@@ -588,6 +674,18 @@ function updateTotal() {
  * Conditional sections
  * ------------------------------------------------------------------ */
 const SECTIONS = { kit: $("sec-kit"), camisa: $("sec-camisa"), shorts: $("sec-shorts") };
+const MODES = [
+  { value: "iguais", label: "Todas iguais" },
+  { value: "variadas", label: "Cada uma diferente" }
+];
+renderChips("modo", MODES);
+
+function quantity() {
+  return parseInt($("quantidade").value, 10) || 1;
+}
+function isVaried() {
+  return quantity() > 1 && radio("modo") === "variadas";
+}
 
 // Clears every input of a section. Without this, a size picked under "Kit" and then
 // abandoned keeps sitting in the form state and leaks into the order.
@@ -597,30 +695,127 @@ function resetSection(section) {
   section.querySelectorAll(".invalid").forEach(function (el) { el.classList.remove("invalid"); });
 }
 
+/* Markup for one per-item block, built from the same option lists the static
+   sections use. Field ids follow v<N>_<canonical>, and the wrapper that carries the
+   error state is always "f-" + the field id, which is what mark() expects. */
+function chipsField(id, legend, values) {
+  return '<fieldset id="f-' + id + '"><span class="legend">' + legend +
+         ' <span class="req">*</span></span><div class="chips" data-chips="' + id + '"></div>' +
+         '<p class="err">Escolha ' + legend.toLowerCase() + '.</p></fieldset>';
+}
+function childField(id, legend) {
+  return '<div class="field hidden" id="f-' + id + '"><label for="' + id + '">' + legend +
+         ' <span class="req">*</span></label><select id="' + id + '"></select>' +
+         '<p class="err">Escolha o tamanho infantil.</p></div>';
+}
+function textField(id, legend, placeholder, hint, extra) {
+  return '<div class="field" id="f-' + id + '"><label for="' + id + '">' + legend +
+         ' <span class="req">*</span></label><input type="text" id="' + id + '" ' + (extra || "") +
+         ' placeholder="' + placeholder + '" autocomplete="off">' +
+         '<p class="hint">' + hint + "</p>" +
+         '<p class="err">Preencha este campo.</p></div>';
+}
+
+function variantBlock(tipo, index) {
+  const ids = idsFor(tipo, index);
+  let body = "";
+  if (tipo === "kit" || tipo === "camisa") {
+    body += chipsField(ids.camisaModelo, "Modelo da camisa", SHIRT_MODELS) +
+            chipsField(ids.camisaTamanho, "Tamanho da camisa", SIZES) +
+            childField(ids.camisaInfantil, "Tamanho infantil da camisa");
+  }
+  if (tipo === "kit" || tipo === "shorts") {
+    body += chipsField(ids.shortsModelo, "Modelo do shorts", SHORTS_MODELS) +
+            chipsField(ids.shortsTamanho, "Tamanho do shorts", SIZES) +
+            childField(ids.shortsInfantil, "Tamanho infantil do shorts");
+  }
+  body += '<div class="two">';
+  if (ids.estampa) {
+    body += textField(ids.estampa, "Nome para estampar", "GÓES",
+      "Como deve aparecer nas costas.", 'class="upper" maxlength="14"');
+  }
+  body += textField(ids.numero, "Número", "23", "De 0 a 99.", 'inputmode="numeric" maxlength="2"');
+  body += "</div>";
+  return '<div class="variant" id="vblock' + index + '">' +
+         '<h3 class="variantTitle">Peça ' + index + ' de ' + quantity() + "</h3>" + body + "</div>";
+}
+
+// Rebuilt only when the type or the quantity changes. Rebuilding on every keystroke
+// would wipe what the person already typed in the other blocks.
+let variantSignature = "";
+
+function renderVariantBlocks() {
+  const tipo = radio("tipo");
+  const signature = tipo + ":" + quantity();
+  if (signature === variantSignature) return;
+  variantSignature = signature;
+
+  let html = "";
+  for (let i = 1; i <= quantity(); i++) html += variantBlock(tipo, i);
+  $("variantBlocks").innerHTML = html;
+  $("variadosTitulo").textContent = quantity() + " " +
+    (tipo === "kit" ? "kits" : tipo === "camisa" ? "camisas" : "shorts") + " do pedido";
+
+  // Chips and child dropdowns only exist as containers until these run.
+  for (let i = 1; i <= quantity(); i++) {
+    const ids = idsFor(tipo, i);
+    if (ids.camisaModelo) renderChips(ids.camisaModelo, SHIRT_MODELS);
+    if (ids.camisaTamanho) renderChips(ids.camisaTamanho, SIZES);
+    if (ids.camisaInfantil) renderChildSelect(ids.camisaInfantil);
+    if (ids.shortsModelo) renderChips(ids.shortsModelo, SHORTS_MODELS);
+    if (ids.shortsTamanho) renderChips(ids.shortsTamanho, SIZES);
+    if (ids.shortsInfantil) renderChildSelect(ids.shortsInfantil);
+  }
+}
+
 function syncSections() {
   const tipo = radio("tipo");
+  const varied = isVaried();
+
+  $("f-modo").classList.toggle("hidden", !tipo || quantity() < 2);
+  if (quantity() < 2 && radio("modo")) {
+    form.querySelectorAll('input[name="modo"]').forEach(function (el) { el.checked = false; });
+  }
+
   Object.keys(SECTIONS).forEach(function (key) {
-    const visible = key === tipo;
+    const visible = key === tipo && !varied;
     if (!visible && !SECTIONS[key].classList.contains("hidden")) resetSection(SECTIONS[key]);
     SECTIONS[key].classList.toggle("hidden", !visible);
   });
+
+  if (varied) {
+    renderVariantBlocks();
+  } else if (!$("sec-variados").classList.contains("hidden")) {
+    $("variantBlocks").innerHTML = "";
+    variantSignature = "";
+  }
+  $("sec-variados").classList.toggle("hidden", !varied);
+
   syncChildFields();
   updateTotal();
 }
 
-// The "tamanho infantil" dropdown only exists while the matching size is "Infantil".
-const CHILD_PAIRS = [
-  ["kitCamisaTamanho", "f-kitCamisaInfantil", "kitCamisaInfantil"],
-  ["kitShortsTamanho", "f-kitShortsInfantil", "kitShortsInfantil"],
-  ["camisaTamanho", "f-camisaInfantil", "camisaInfantil"],
-  ["shortsTamanho", "f-shortsInfantil", "shortsInfantil"]
-];
+// Every block currently on screen, as a canonical-name to element-id map.
+function currentIdMaps() {
+  const tipo = radio("tipo");
+  if (!tipo) return [];
+  if (!isVaried()) return [STATIC_IDS[tipo]];
+  const maps = [];
+  for (let i = 1; i <= quantity(); i++) maps.push(idsFor(tipo, i));
+  return maps;
+}
 
+// The "tamanho infantil" dropdown only exists while the matching size is "Infantil".
 function syncChildFields() {
-  CHILD_PAIRS.forEach(function (pair) {
-    const on = radio(pair[0]) === "Infantil";
-    $(pair[1]).classList.toggle("hidden", !on);
-    if (!on) { $(pair[2]).value = ""; $(pair[1]).classList.remove("invalid"); }
+  currentIdMaps().forEach(function (ids) {
+    [["camisaTamanho", "camisaInfantil"], ["shortsTamanho", "shortsInfantil"]].forEach(function (pair) {
+      if (!ids[pair[0]] || !ids[pair[1]]) return;
+      const wrap = $("f-" + ids[pair[1]]);
+      if (!wrap) return;
+      const on = radio(ids[pair[0]]) === "Infantil";
+      wrap.classList.toggle("hidden", !on);
+      if (!on) { $(ids[pair[1]]).value = ""; wrap.classList.remove("invalid"); }
+    });
   });
 }
 
@@ -632,8 +827,8 @@ function mark(fieldId, ok) {
   return ok;
 }
 
-// Only the fields of the visible section are checked, which is why switching the
-// order type cannot leave the submit button silently doing nothing.
+// Walks the blocks that are actually on screen, so switching the order type or the
+// quantity can never leave the submit button silently doing nothing.
 function validate() {
   const bad = [];
   const check = (id, ok) => { if (!mark(id, ok)) bad.push(id); };
@@ -647,27 +842,29 @@ function validate() {
   check("f-tipo", !!tipo);
   if (!tipo) return bad;
 
-  if (tipo === "kit") {
-    check("f-kitCamisaTamanho", !!radio("kitCamisaTamanho"));
-    check("f-kitCamisaModelo", !!radio("kitCamisaModelo"));
-    check("f-kitShortsTamanho", !!radio("kitShortsTamanho"));
-    check("f-kitShortsModelo", !!radio("kitShortsModelo"));
-    if (radio("kitCamisaTamanho") === "Infantil") check("f-kitCamisaInfantil", !!$("kitCamisaInfantil").value);
-    if (radio("kitShortsTamanho") === "Infantil") check("f-kitShortsInfantil", !!$("kitShortsInfantil").value);
-    check("f-kitEstampa", text("kitEstampa").length >= 2);
-    check("f-kitNumero", number(text("kitNumero")));
-  } else if (tipo === "camisa") {
-    check("f-camisaModelo", !!radio("camisaModelo"));
-    check("f-camisaTamanho", !!radio("camisaTamanho"));
-    if (radio("camisaTamanho") === "Infantil") check("f-camisaInfantil", !!$("camisaInfantil").value);
-    check("f-camisaEstampa", text("camisaEstampa").length >= 2);
-    check("f-camisaNumero", number(text("camisaNumero")));
-  } else {
-    check("f-shortsModelo", !!radio("shortsModelo"));
-    check("f-shortsTamanho", !!radio("shortsTamanho"));
-    if (radio("shortsTamanho") === "Infantil") check("f-shortsInfantil", !!$("shortsInfantil").value);
-    check("f-shortsNumero", number(text("shortsNumero")));
+  if (quantity() > 1) {
+    check("f-modo", !!radio("modo"));
+    if (!radio("modo")) return bad;
   }
+
+  currentIdMaps().forEach(function (ids) {
+    if (ids.camisaModelo) check("f-" + ids.camisaModelo, !!radio(ids.camisaModelo));
+    if (ids.camisaTamanho) {
+      check("f-" + ids.camisaTamanho, !!radio(ids.camisaTamanho));
+      if (radio(ids.camisaTamanho) === "Infantil") {
+        check("f-" + ids.camisaInfantil, !!$(ids.camisaInfantil).value);
+      }
+    }
+    if (ids.shortsModelo) check("f-" + ids.shortsModelo, !!radio(ids.shortsModelo));
+    if (ids.shortsTamanho) {
+      check("f-" + ids.shortsTamanho, !!radio(ids.shortsTamanho));
+      if (radio(ids.shortsTamanho) === "Infantil") {
+        check("f-" + ids.shortsInfantil, !!$(ids.shortsInfantil).value);
+      }
+    }
+    if (ids.estampa) check("f-" + ids.estampa, ($(ids.estampa).value || "").trim().length >= 2);
+    check("f-" + ids.numero, number(($(ids.numero).value || "").trim()));
+  });
   return bad;
 }
 
@@ -677,7 +874,24 @@ function validate() {
 function buildOrder(orderId) {
   const tipo = radio("tipo");
   const p = priceOf();
-  const o = {
+  const itens = p.items.map(function (item) {
+    return {
+      tipo: tipo,
+      quantidade: item.qtd,
+      camisa_modelo: item.camisaModelo || "",
+      camisa_tamanho: item.camisaBase ? sizeLabel(item.camisaBase, item.camisaChild) : "",
+      shorts_modelo: item.shortsModelo || "",
+      shorts_tamanho: item.shortsBase ? sizeLabel(item.shortsBase, item.shortsChild) : "",
+      nome_estampa: (item.estampa || "").toUpperCase(),
+      numero: item.numero || "",
+      valor_unitario: itemUnitPrice(item)
+    };
+  });
+
+  // The flat fields repeat the first item. They are what the first version of the
+  // backend reads, so a page still cached in someone's browser keeps working.
+  const first = itens[0] || {};
+  return {
     order_id: orderId,
     token: CONFIG.token,
     website: $("website").value,            // honeypot, must stay empty
@@ -685,34 +899,19 @@ function buildOrder(orderId) {
     whatsapp: digits(text("whatsapp")),
     tipo: tipo,
     tipo_label: (ORDER_TYPES.filter((t) => t.value === tipo)[0] || {}).label || "",
-    quantidade: p.qty,
-    camisa_modelo: "", camisa_tamanho: "",
-    shorts_modelo: "", shorts_tamanho: "",
-    nome_estampa: "", numero: "",
-    valor_unitario: p.unit,
+    quantidade: first.quantidade || 1,
+    camisa_modelo: first.camisa_modelo || "",
+    camisa_tamanho: first.camisa_tamanho || "",
+    shorts_modelo: first.shorts_modelo || "",
+    shorts_tamanho: first.shorts_tamanho || "",
+    nome_estampa: first.nome_estampa || "",
+    numero: first.numero || "",
+    valor_unitario: first.valor_unitario || 0,
     valor_total: p.total,
+    itens: itens,
     observacoes: text("observacoes"),
     pagina: location.href
   };
-
-  if (tipo === "kit") {
-    o.camisa_modelo = radio("kitCamisaModelo");
-    o.camisa_tamanho = sizeOf("kitCamisaTamanho", "kitCamisaInfantil");
-    o.shorts_modelo = radio("kitShortsModelo");
-    o.shorts_tamanho = sizeOf("kitShortsTamanho", "kitShortsInfantil");
-    o.nome_estampa = text("kitEstampa").toUpperCase();
-    o.numero = text("kitNumero");
-  } else if (tipo === "camisa") {
-    o.camisa_modelo = radio("camisaModelo");
-    o.camisa_tamanho = sizeOf("camisaTamanho", "camisaInfantil");
-    o.nome_estampa = text("camisaEstampa").toUpperCase();
-    o.numero = text("camisaNumero");
-  } else if (tipo === "shorts") {
-    o.shorts_modelo = radio("shortsModelo");
-    o.shorts_tamanho = sizeOf("shortsTamanho", "shortsInfantil");
-    o.numero = text("shortsNumero");
-  }
-  return o;
 }
 
 function summaryText(o) {
@@ -721,14 +920,20 @@ function summaryText(o) {
     "Protocolo: " + o.order_id.slice(0, 8).toUpperCase(),
     "Nome: " + o.nome,
     "WhatsApp: " + o.whatsapp,
-    "Pedido: " + o.tipo_label,
-    "Quantidade: " + o.quantidade
+    "Pedido: " + o.tipo_label
   ];
-  if (o.camisa_tamanho) lines.push("Camisa: " + o.camisa_modelo + " - " + o.camisa_tamanho);
-  if (o.shorts_tamanho) lines.push("Shorts: " + o.shorts_modelo + " - " + o.shorts_tamanho);
-  if (o.nome_estampa) lines.push("Nome estampado: " + o.nome_estampa);
-  if (o.numero) lines.push("Número: " + o.numero);
-  if (o.quantidade > 1) lines.push("Valor unitário: " + brl(o.valor_unitario));
+  const several = o.itens.length > 1;
+  o.itens.forEach(function (item, index) {
+    if (several) lines.push("", "-- Peça " + (index + 1) + " --");
+    if (item.camisa_tamanho) lines.push("Camisa: " + item.camisa_modelo + " - " + item.camisa_tamanho);
+    if (item.shorts_tamanho) lines.push("Shorts: " + item.shorts_modelo + " - " + item.shorts_tamanho);
+    if (item.nome_estampa) lines.push("Nome estampado: " + item.nome_estampa);
+    if (item.numero) lines.push("Número: " + item.numero);
+    if (item.quantidade > 1) {
+      lines.push("Quantidade: " + item.quantidade + " x " + brl(item.valor_unitario));
+    }
+  });
+  if (several) lines.push("");
   lines.push("TOTAL: " + brl(o.valor_total));
   if (o.observacoes) lines.push("Observações: " + o.observacoes);
   lines.push("", "PIX: " + CONFIG.pixKey, "Favorecido: " + CONFIG.pixOwner + " - " + CONFIG.pixBank);
@@ -824,6 +1029,7 @@ function startNewOrder() {
   $("whatsapp").value = phone;
   $("feedback").innerHTML = "";
   form.querySelectorAll(".invalid").forEach(function (el) { el.classList.remove("invalid"); });
+  variantSignature = "";   // force a rebuild if the next order is a varied one too
   syncSections();
   $("f-tipo").scrollIntoView({ behavior: "smooth", block: "center" });
 }
@@ -860,9 +1066,16 @@ form.addEventListener("submit", async function (event) {
 /* ------------------------------------------------------------------ *
  * Input behaviour
  * ------------------------------------------------------------------ */
+// A size radio is any chip group whose name ends in Tamanho, static or generated.
+const isSizeRadio = (name) => /Tamanho$/.test(name || "");
+
 form.addEventListener("change", function (event) {
-  if (event.target.name === "tipo") { syncSections(); return; }
-  if (CHILD_PAIRS.some((p) => p[0] === event.target.name)) syncChildFields();
+  const name = event.target.name || event.target.id;
+  if (name === "tipo" || name === "modo" || event.target.id === "quantidade") {
+    syncSections();
+    return;
+  }
+  if (isSizeRadio(name)) syncChildFields();
   updateTotal();
   // Clear the error as soon as the field is answered.
   const field = event.target.closest(".field, fieldset");
@@ -873,9 +1086,14 @@ form.addEventListener("input", function (event) {
   if (field && field.classList.contains("invalid")) field.classList.remove("invalid");
 });
 
-// Keeps the number fields numeric without blocking the mobile keyboard.
-["kitNumero", "camisaNumero", "shortsNumero"].forEach(function (id) {
-  $(id).addEventListener("input", function () { this.value = digits(this.value).slice(0, 2); });
+// Keeps the number fields numeric without blocking the mobile keyboard. Delegated,
+// because the per-item blocks only exist after someone picks "cada uma diferente".
+form.addEventListener("input", function (event) {
+  const id = event.target.id || "";
+  if (/(^|_)(kitNumero|camisaNumero|shortsNumero|numero)$/.test(id) || /Numero$/.test(id)) {
+    event.target.value = digits(event.target.value).slice(0, 2);
+    updateTotal();
+  }
 });
 
 // Brazilian phone mask: (19) 99795-6879

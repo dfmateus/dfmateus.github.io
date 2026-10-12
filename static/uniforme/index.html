@@ -73,7 +73,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 textarea{resize:vertical}
 .hint{font-size:.81rem;color:var(--muted);margin:6px 0 0}
 .upper{text-transform:uppercase}
-.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+ /* 2 para 1: o nome estampado precisa da dica cabendo numa linha, o número só
+    guarda dois dígitos. Em tela estreita vira coluna única pelo media query. */
+.two{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:18px;align-items:start}
 /* Sem isso só o primeiro campo do par zera a margem de cima, e os dois rótulos
    saem desalinhados na horizontal. */
 .two>.field{margin-top:0}

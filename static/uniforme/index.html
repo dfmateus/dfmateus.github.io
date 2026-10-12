@@ -819,15 +819,47 @@ function variantBlock(tipo, index) {
          '<h3 class="variantTitle">Peça ' + index + ' de ' + quantity() + "</h3>" + body + "</div>";
 }
 
+// Lê e escreve um campo pelo id, seja ele input, select ou grupo de chips. O grupo
+// não tem elemento com aquele id: o id é o name dos rádios.
+function readField(id) {
+  const el = $(id);
+  if (el) return el.value || "";
+  const group = form.elements[id];
+  return group ? (group.value || "") : "";
+}
+function writeField(id, value) {
+  if (!value) return;
+  const el = $(id);
+  if (el) { el.value = value; return; }
+  const chip = form.querySelector('input[name="' + id + '"][value="' + value + '"]');
+  if (chip) chip.checked = true;
+}
+
+function snapshotVariants(tipo, count) {
+  const blocos = [];
+  for (let i = 1; i <= count; i++) {
+    const ids = idsFor(tipo, i);
+    const bloco = {};
+    FIELDS[tipo].forEach(function (field) { bloco[field] = readField(ids[field]); });
+    blocos.push(bloco);
+  }
+  return blocos;
+}
+
 // Rebuilt only when the type or the quantity changes. Rebuilding on every keystroke
 // would wipe what the person already typed in the other blocks.
-let variantSignature = "";
+let variantState = { tipo: "", count: 0 };
 
 function renderVariantBlocks() {
   const tipo = radio("tipo");
-  const signature = tipo + ":" + quantity();
-  if (signature === variantSignature) return;
-  variantSignature = signature;
+  const count = quantity();
+  if (variantState.tipo === tipo && variantState.count === count) return;
+
+  // Trocar a quantidade reconstrói os blocos, e sem isto o que já foi digitado
+  // ia embora junto: a pessoa preenche duas peças, vê que são três, e perde tudo.
+  const guardado = (variantState.tipo === tipo && variantState.count > 0)
+    ? snapshotVariants(tipo, variantState.count)
+    : [];
 
   let html = "";
   for (let i = 1; i <= quantity(); i++) html += variantBlock(tipo, i);
@@ -846,6 +878,14 @@ function renderVariantBlocks() {
     if (ids.shortsTamanho) renderChips(ids.shortsTamanho, SIZES);
     if (ids.shortsInfantil) renderChildSelect(ids.shortsInfantil);
   }
+
+  // Devolve o que já estava preenchido nos blocos que sobreviveram.
+  guardado.slice(0, count).forEach(function (bloco, index) {
+    const ids = idsFor(tipo, index + 1);
+    Object.keys(bloco).forEach(function (field) { writeField(ids[field], bloco[field]); });
+  });
+
+  variantState = { tipo: tipo, count: count };
 }
 
 function syncSections() {
@@ -867,7 +907,7 @@ function syncSections() {
     renderVariantBlocks();
   } else if (!$("sec-variados").classList.contains("hidden")) {
     $("variantBlocks").innerHTML = "";
-    variantSignature = "";
+    variantState = { tipo: "", count: 0 };
   }
   $("sec-variados").classList.toggle("hidden", !varied);
 
@@ -1165,13 +1205,14 @@ function startNewOrder() {
   $("whatsapp").value = phone;
   $("feedback").innerHTML = "";
   form.querySelectorAll(".invalid").forEach(function (el) { el.classList.remove("invalid"); });
-  variantSignature = "";   // force a rebuild if the next order is a varied one too
+  variantState = { tipo: "", count: 0 };   // força reconstrução no próximo pedido
   syncSections();
   $("f-tipo").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 form.addEventListener("submit", async function (event) {
   event.preventDefault();
+  if (enviando) return;
   const bad = validate();
   if (bad.length) {
     $(bad[0]).scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1191,16 +1232,28 @@ form.addEventListener("submit", async function (event) {
   await submitOrder(order);
 });
 
+// Trava de reentrada: desabilitar o botão não impede o Enter no teclado de
+// disparar o formulário outra vez, e aí sairiam dois pedidos com protocolos
+// diferentes, que a checagem por conteúdo só pegaria depois do estrago.
+let enviando = false;
+
 // Shared by the submit button and by the "send it anyway" confirmation, which
 // re-sends the same order with force so the server skips the duplicate check.
 async function submitOrder(order) {
+  if (enviando) return;
+  enviando = true;
   const btn = $("submitBtn");
   const original = btn.textContent;
   btn.disabled = true;
   btn.textContent = "Enviando...";
-  const result = await postOrder(order);
-  btn.disabled = false;
-  btn.textContent = original;
+  let result;
+  try {
+    result = await postOrder(order);
+  } finally {
+    enviando = false;
+    btn.disabled = false;
+    btn.textContent = original;
+  }
   renderFeedback(result.state, order, result);
 }
 

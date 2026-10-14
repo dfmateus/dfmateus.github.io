@@ -14,8 +14,8 @@ title    = "Diego Mateus Blog"
 [params.author]
     name     = "Diego Mateus"
     image    = "img/avatar.png"
-    headline = "Senior Cloud Consultant @ Red Hat"
-    bio      = "Hybrid Cloud, OpenShift, Ansible Automation Platform, OpenShift Virtualization, Satellite. Delivering end-to-end cloud infrastructure transformations with the Red Hat portfolio."
+    headline = "Senior Cloud Consultant"
+    bio      = "Hybrid Cloud, OpenShift, Ansible Automation Platform, OpenShift Virtualization, Satellite. Hands-on notes from building, breaking and rebuilding these in a lab."
     links    = [
         { github   = "https://github.com/dfmateus" },
         { linkedin = "https://linkedin.com/in/dfmateus" },

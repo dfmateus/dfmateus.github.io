@@ -1,7 +1,7 @@
 ---
 title: "Automating ACM Hub Disaster Recovery with Ansible Across a Multi-Cloud Fleet"
 description: "An Ansible collection that turns RHACM Hub failover, DR drills, planned-maintenance switchovers, and fleet lifecycle management into safe, repeatable AAP automation."
-date: 2026-11-09
+date: 2026-11-09T09:00:00-03:00
 tags:
     - acm
     - aap
@@ -19,6 +19,7 @@ categories:
     - ansible
     - openshift
     - multi-cluster
+    - kubernetes
 series:
     - ACM Multi-Cluster Automation
 ---
